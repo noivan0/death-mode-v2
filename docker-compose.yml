@@ -1,0 +1,141 @@
+##############################################################
+# DEATH MODE v2 — Multi-Exchange Docker Compose
+#
+# 이식성 규칙:
+#   - 모든 secrets: secrets.env (gitignore 대상)
+#   - Python 버전: entrypoint_patch.sh 동적 감지
+#   - verify=False: LIGHTER_SKIP_SSL_VERIFY=1 (HMG 사내망만)
+#
+# 포트 배정:
+#   8082 = lighter    (DEX, USDC)
+#   8083 = hyperliquid (DEX, USDC)
+#   8084 = binance    (CEX, USDT)
+#   8085 = bybit      (CEX, USDT)
+#   8086 = bitget     (CEX, USDT)
+#   8087 = okx        (CEX, USDT)
+#
+# 사용법:
+#   cp secrets.env.template secrets.env && nano secrets.env
+#   docker compose up -d              # Lighter only
+#   docker compose --profile hyperliquid up -d
+#   docker compose --profile cex up -d  # CEX (외부망 필요)
+##############################################################
+
+x-freqtrade-common: &freqtrade-common
+  image: freqtradeorg/freqtrade:stable
+  restart: unless-stopped
+  env_file:
+    - path: ./secrets.env
+      required: false
+  volumes:
+    - ./user_data:/freqtrade/user_data
+    - ./config:/freqtrade/config
+    - ./exchange_patch/lighter.py:/freqtrade/freqtrade/exchange/lighter.py:ro
+    - ./exchange_patch/__init__.py:/freqtrade/freqtrade/exchange/__init__.py:ro
+    - ./exchange_patch:/ft_patches:ro
+  environment:
+    - TZ=UTC
+  entrypoint: ["/bin/bash", "/ft_patches/entrypoint_patch.sh"]
+  healthcheck:
+    test:
+      - "CMD"
+      - "python3"
+      - "-c"
+      - "import ccxt; l = ccxt.lighter(); assert l.has.get('fetchOrder') == True, 'patch missing'"
+    interval: 30s
+    timeout: 15s
+    retries: 5
+    start_period: 90s
+  logging:
+    driver: "json-file"
+    options:
+      max-size: "50m"
+      max-file: "5"
+
+services:
+
+  freqtrade-lighter:
+    <<: *freqtrade-common
+    container_name: death-mode-freqtrade
+    ports:
+      - "8082:8080"
+    command:
+      - trade
+      - --config
+      - /freqtrade/config/lighter_futures.json
+      - --strategy
+      - NostalgiaForInfinityX7
+
+  freqtrade-hyperliquid:
+    <<: *freqtrade-common
+    container_name: death-mode-hyperliquid
+    ports:
+      - "8083:8080"
+    command:
+      - trade
+      - --config
+      - /freqtrade/config/hyperliquid_futures.json
+      - --strategy
+      - NostalgiaForInfinityX7
+    profiles:
+      - hyperliquid
+
+  freqtrade-binance:
+    <<: *freqtrade-common
+    container_name: death-mode-binance
+    ports:
+      - "8084:8080"
+    command:
+      - trade
+      - --config
+      - /freqtrade/config/binance_futures.json
+      - --strategy
+      - NostalgiaForInfinityX7
+    profiles:
+      - cex
+      - binance
+
+  freqtrade-bybit:
+    <<: *freqtrade-common
+    container_name: death-mode-bybit
+    ports:
+      - "8085:8080"
+    command:
+      - trade
+      - --config
+      - /freqtrade/config/bybit_futures.json
+      - --strategy
+      - NostalgiaForInfinityX7
+    profiles:
+      - cex
+      - bybit
+
+  freqtrade-bitget:
+    <<: *freqtrade-common
+    container_name: death-mode-bitget
+    ports:
+      - "8086:8080"
+    command:
+      - trade
+      - --config
+      - /freqtrade/config/bitget_futures.json
+      - --strategy
+      - NostalgiaForInfinityX7
+    profiles:
+      - cex
+      - bitget
+
+  freqtrade-okx:
+    <<: *freqtrade-common
+    container_name: death-mode-okx
+    ports:
+      - "8087:8080"
+    command:
+      - trade
+      - --config
+      - /freqtrade/config/okx_futures.json
+      - --strategy
+      - NostalgiaForInfinityX7
+    profiles:
+      - cex
+      - okx

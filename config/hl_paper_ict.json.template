@@ -1,0 +1,94 @@
+{
+  "max_open_trades": 5,
+  "stake_currency": "USDC",
+  "stake_amount": "unlimited",
+  "tradable_balance_ratio": 0.99,
+  "fiat_display_currency": "USD",
+  "dry_run": true,
+  "dry_run_wallet": 10000,
+  "cancel_open_orders_on_exit": true,
+  "trading_mode": "futures",
+  "margin_mode": "isolated",
+  "liquidation_buffer": 0.05,
+  "candle_type_def": "futures",
+  "entry_pricing": {
+    "price_side": "same",
+    "use_order_book": true,
+    "order_book_top": 1
+  },
+  "exit_pricing": {
+    "price_side": "same",
+    "use_order_book": true,
+    "order_book_top": 1
+  },
+  "order_types": {
+    "entry": "limit",
+    "exit": "limit",
+    "stoploss": "limit",
+    "stoploss_on_exchange": false,
+    "stoploss_on_exchange_interval": 60
+  },
+  "order_time_in_force": {
+    "entry": "GTC",
+    "exit": "GTC"
+  },
+  "exchange": {
+    "name": "hyperliquid",
+    "key": "${HL_WALLET_ADDRESS}",
+    "secret": "${HL_PRIVATE_KEY}",
+    "ccxt_config": {
+      "verify": false,
+      "walletAddress": "${HL_WALLET_ADDRESS}",
+      "privateKey": "${HL_PRIVATE_KEY}",
+      "rateLimit": 500
+    },
+    "ccxt_async_config": {
+      "verify": false,
+      "walletAddress": "${HL_WALLET_ADDRESS}",
+      "privateKey": "${HL_PRIVATE_KEY}",
+      "rateLimit": 500
+    },
+    "pair_whitelist": [
+      "BTC/USDC:USDC",
+      "ETH/USDC:USDC",
+      "SOL/USDC:USDC",
+      "HYPE/USDC:USDC",
+      "SUI/USDC:USDC",
+      "XRP/USDC:USDC",
+      "ZEC/USDC:USDC",
+      "LIT/USDC:USDC",
+      "VVV/USDC:USDC"
+    ],
+    "pair_blacklist": [
+      "TON/USDC:USDC"
+    ]
+  },
+  "pairlists": [
+    {
+      "method": "StaticPairList"
+    }
+  ],
+  "strategy": "DeathModeV2_NFI",
+  "strategy_path": "/root/.hermes/projects/death-mode-v2/user_data/strategies/",
+  "db_url": "sqlite:////root/.hermes/projects/death-mode-v2/user_data/tradesv3_hl_paper_nfi.sqlite",
+  "logfile": "/root/.hermes/projects/death-mode-v2/user_data/logs/paper_nfi.log",
+  "api_server": {
+    "enabled": true,
+    "listen_ip_address": "127.0.0.1",
+    "listen_port": 8095,
+    "jwt_secret_key": "${JWT_SECRET_KEY}",
+    "username": "death",
+    "password": "${API_PASSWORD}"
+  },
+  "initial_state": "running",
+  "telegram": {
+    "enabled": false,
+    "token": "",
+    "chat_id": ""
+  },
+  "internals": {
+    "process_throttle_secs": 5
+  },
+  "startup_candle_count": 500,
+  "datadir": "/root/.hermes/projects/death-mode-v2/user_data/data/hyperliquid"
+}

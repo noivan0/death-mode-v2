@@ -1,0 +1,44 @@
+# DEATH MODE v2 — .gitignore
+#
+# secrets.env는 절대 git에 커밋하지 마세요!
+# 계정 정보, private key 포함.
+
+# 비밀 설정
+secrets.env
+*.env
+!secrets.env.template
+!.env.template
+
+# Freqtrade 데이터 (거래 DB, 로그)
+user_data/data/
+user_data/logs/
+user_data/*.sqlite
+user_data/*.sqlite-shm
+user_data/*.sqlite-wal
+user_data/tradesv3*.sqlite*
+
+# NFI 전략 파일 (별도 저장소에서 클론)
+user_data/strategies/NostalgiaForInfinityX7.py
+
+# config 실제 파일 (template만 추적)
+config/lighter_futures.json
+config/binance_futures.json
+config/bybit_futures.json
+config/bitget_futures.json
+config/okx_futures.json
+config/hyperliquid_futures.json
+
+# Docker override
+docker-compose.override.yml
+config/hl_paper_ict.json
+config/hl_backtest_spot.json
+config/backtest.json
+config/backtest_10pairs.json
+config/bt_death_10pairs.json
+__pycache__/
+*.pyc
+.pids/
+__pycache__/
+*.pyc
+.pids/
+user_data/backtest_results/*.zip

@@ -1,0 +1,42 @@
+{
+  "$schema": "https://schema.freqtrade.io/schema.json",
+  "_comment": "Lighter DEX USDC perp pairlist — 실측 기반 (2026-05-19)",
+  "_note": "Lighter는 USDC 기반 (USDT 아님). 심볼 형식: BASE/USDC:USDC",
+
+  "exchange": {
+    "pair_whitelist": [
+      "BTC/USDC:USDC",
+      "ETH/USDC:USDC",
+      "SOL/USDC:USDC",
+      "BNB/USDC:USDC",
+      "XRP/USDC:USDC",
+      "DOGE/USDC:USDC",
+      "AVAX/USDC:USDC",
+      "LINK/USDC:USDC",
+      "ARB/USDC:USDC",
+      "OP/USDC:USDC",
+      "DOT/USDC:USDC",
+      "ADA/USDC:USDC",
+      "ATOM/USDC:USDC",
+      "TIA/USDC:USDC",
+      "ENA/USDC:USDC",
+      "TAO/USDC:USDC",
+      "HBAR/USDC:USDC",
+      "MKR/USDC:USDC",
+      "1000SHIB/USDC:USDC",
+      "JTO/USDC:USDC"
+    ],
+    "pair_blacklist": [
+      "USDJPY/USDC:USDC",
+      "USDKRW/USDC:USDC",
+      "KRCOMP/USDC:USDC",
+      "SAMSUNG/USDC:USDC",
+      "SPX/USDC:USDC",
+      "SOXX/USDC:USDC",
+      "YZY/USDC:USDC",
+      "WLFI/USDC:USDC",
+      "PUMP/USDC:USDC",
+      "AI16Z/USDC:USDC"
+    ]
+  }
+}
