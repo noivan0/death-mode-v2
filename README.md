@@ -163,10 +163,28 @@ freqtrade trade \
 ## 감사 이력
 
 | 버전 | 내용 |
-|---|---|
-| v1.0 | NFI X7 초기 통합, ccxt options 보존 |
-| v1.1 | privateKey 마스킹, JWT 강화, API 127.0.0.1 바인딩 |
+|------|------|
 | v1.2 | TON 블랙리스트, startup_candle_count config화, SSL 환경변수 조건부, _mask_sensitive list 지원 |
+| v1.1 | privateKey 마스킹, JWT 강화, API 127.0.0.1 바인딩 |
+| v1.0 | NFI X7 초기 통합, ccxt options 보존 |
+
+---
+
+## 자율운영 (Hermes Agent)
+
+이 프로젝트는 Hermes Agent 기반 자율운영을 지원합니다:
+
+- **프로젝트 등록**: `.hermes/project.yml` — 전략/거래소/상태 정의
+- **CI/CD**: GitHub Actions (lint + import 검증 + config 유효성 검사)
+- **데일리 리포트**: `python scripts/daily_report.py` — 일일 P&L 및 거래 통계
+- **크론잡**: Hermes cron을 통한 주기적 P&L 모니터링 가능
+
+### CI 상태
+
+`main` 브랜치 푸시 시 자동 실행:
+1. Flake8 린트 (심각도 E9/F63/F7/F82)
+2. 전략 import 검증
+3. JSON config 유효성 검사
 
 ---
 

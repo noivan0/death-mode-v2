@@ -17,8 +17,7 @@ user_data/*.sqlite-shm
 user_data/*.sqlite-wal
 user_data/tradesv3*.sqlite*
 
-# NFI 전략 파일 (별도 저장소에서 클론)
-user_data/strategies/NostalgiaForInfinityX7.py
+# NFI 전략 파일 (로컬용 — 레포에는 포함됨)
 
 # config 실제 파일 (template만 추적)
 config/lighter_futures.json

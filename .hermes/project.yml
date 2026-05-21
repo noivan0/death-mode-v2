@@ -1,0 +1,19 @@
+name: death-mode-v2
+description: "NFI X7 Multi-Exchange Trading Bot — Hyperliquid + Lighter DEX"
+repo: https://github.com/noivan0/death-mode-v2
+workdir: /mnt/d/death-mode-v2
+strategies:
+  - DeathModeV2_NFI (메인, 추천)
+  - DeathModeV2_Base (보수적)
+  - DeathModeV2_Sharp (승률최적 v1)
+  - DeathModeV2_SharpV2 (승률최적 v2)
+  - DeathModeV2_ICT (ICT 분석)
+  - DeathModeV2_OrderFlow (오더플로우 v2)
+  - DeathModeV2_OF (오더플로우 v1)
+exchanges:
+  - hyperliquid (isolated)
+  - lighter (cross)
+  - bitget (CEX)
+  - bybit (CEX)
+  - okx (CEX)
+status: active
