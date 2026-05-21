@@ -26,18 +26,21 @@ config/bybit_futures.json
 config/bitget_futures.json
 config/okx_futures.json
 config/hyperliquid_futures.json
-
-# Docker override
-docker-compose.override.yml
 config/hl_paper_ict.json
 config/hl_backtest_spot.json
 config/backtest.json
 config/backtest_10pairs.json
 config/bt_death_10pairs.json
-__pycache__/
-*.pyc
+
+# Docker override
+docker-compose.override.yml
+
+# Python 캐시 (재귀)
+**/__pycache__/
+**/*.pyc
+
+# PID 파일
 .pids/
-__pycache__/
-*.pyc
-.pids/
+
+# 백테스트 ZIP (원본 유지, 압축 해제 결과는 추적)
 user_data/backtest_results/*.zip

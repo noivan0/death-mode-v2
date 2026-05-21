@@ -1,0 +1,80 @@
+{
+  "$schema": "https://schema.freqtrade.io/schema.json",
+  "_comment": "DEATH MODE v2 — Lighter DEX Config (envsubst 템플릿)",
+  "_note": "privateKey는 secrets.env의 LIGHTER_API_SECRET으로 주입됨",
+
+  "max_open_trades": 5,
+  "stake_currency": "USDC",
+  "stake_amount": "unlimited",
+  "tradable_balance_ratio": 0.99,
+  "fiat_display_currency": "USD",
+  "dry_run": true,
+  "dry_run_wallet": 10000,
+  "cancel_open_orders_on_exit": true,
+  "trading_mode": "futures",
+  "margin_mode": "cross",
+  "liquidation_buffer": 0.05,
+  "candle_type_def": "futures",
+
+  "entry_pricing": {
+    "price_side": "same",
+    "use_order_book": true,
+    "order_book_top": 1
+  },
+  "exit_pricing": {
+    "price_side": "same",
+    "use_order_book": true,
+    "order_book_top": 1
+  },
+  "order_types": {
+    "entry": "limit",
+    "exit": "limit",
+    "stoploss": "limit",
+    "stoploss_on_exchange": false,
+    "stoploss_on_exchange_interval": 60
+  },
+  "order_time_in_force": {
+    "entry": "GTC",
+    "exit": "GTC"
+  },
+
+  "exchange": {
+    "name": "lighter",
+    "key": "",
+    "secret": "${LIGHTER_API_SECRET}",
+    "ccxt_config": {
+      "options": {
+        "accountIndex": ${LIGHTER_ACCOUNT_INDEX:-0},
+        "apiKeyIndex": ${LIGHTER_API_KEY_INDEX:-0},
+        "chainId": ${LIGHTER_CHAIN_ID:-300}
+      },
+      "privateKey": "${LIGHTER_API_SECRET}"
+    },
+    "ccxt_async_config": {
+      "options": {
+        "accountIndex": ${LIGHTER_ACCOUNT_INDEX:-0},
+        "apiKeyIndex": ${LIGHTER_API_KEY_INDEX:-0},
+        "chainId": ${LIGHTER_CHAIN_ID:-300}
+      },
+      "privateKey": "${LIGHTER_API_SECRET}"
+    },
+    "pair_whitelist": [
+      "BTC/USDC:USDC",
+      "ETH/USDC:USDC",
+      "SOL/USDC:USDC",
+      "BNB/USDC:USDC",
+      "XRP/USDC:USDC"
+    ],
+    "pair_blacklist": []
+  },
+
+  "pairlists": [
+    {"method": "StaticPairList"}
+  ],
+
+  "telegram": {
+    "enabled": false,
+    "token": "",
+    "chat_id": ""
+  }
+}
