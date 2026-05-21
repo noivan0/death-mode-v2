@@ -17,7 +17,7 @@
 set -euo pipefail
 
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-FREQTRADE="/root/.hermes/hermes-agent/venv/bin/freqtrade"
+FREQTRADE="${FREQTRADE_BIN:-$(command -v freqtrade 2>/dev/null)}"
 CONFIG_DIR="$PROJECT_DIR/config"
 LOG_DIR="$PROJECT_DIR/user_data/logs"
 PID_DIR="$PROJECT_DIR/.pids"

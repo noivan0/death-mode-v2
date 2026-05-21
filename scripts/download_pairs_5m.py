@@ -8,7 +8,9 @@ from pathlib import Path
 import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-DATADIR = Path("/root/.hermes/projects/death-mode-v2/user_data/data/hyperliquid/futures")
+import os
+PROJ_ROOT = Path(os.environ.get("PROJ_DIR", Path(__file__).parent.parent))
+DATADIR = PROJ_ROOT / "user_data" / "data" / "hyperliquid" / "futures"
 DATADIR.mkdir(parents=True, exist_ok=True)
 BASE = "https://data.binance.vision/data/futures/um/monthly/klines"
 
