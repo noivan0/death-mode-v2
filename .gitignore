@@ -26,6 +26,7 @@ config/binance_futures.json
 config/bybit_futures.json
 config/bitget_futures.json
 config/okx_futures.json
+config/okx_live_cardinal.json
 config/hyperliquid_futures.json
 config/hl_paper_ict.json
 config/hl_backtest_spot.json

@@ -11,7 +11,12 @@ from core.exchange.lighter_marketdata import SignalReport
 from core.exchange.okx_public import OkxPublicClient, parse_candles, parse_swap_spec
 from core.risk.risk_gate import RiskConfig, RiskGate
 from core.risk.tilt_guard import TiltConfig, TiltGuard
-from core.strategy.desk import cardinal_plan, evaluate_symbol, fit_swap_size
+from core.strategy.desk import (
+    cardinal_plan,
+    collateral_for_notional,
+    evaluate_symbol,
+    fit_swap_size,
+)
 
 
 def test_parse_candles_sorts_oldest_first():
@@ -163,6 +168,12 @@ def test_eighty_dollar_book_selects_min_btc_contract():
     assert decision.fit.contracts == 0.01
     assert decision.fit.risk_amount <= 0.40
     assert decision.plan.stop == 76000.0 * 0.97
+
+
+def test_collateral_divides_notional_by_leverage():
+    assert collateral_for_notional(13.43596831, 3) == 13.43596831 / 3
+    assert collateral_for_notional(10, 1) == 10
+    assert collateral_for_notional(10, 0) == 10
 
 
 def test_cardinal_plan_uses_three_percent_stop():

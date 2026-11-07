@@ -15,6 +15,20 @@ from ..risk.tilt_guard import TiltGuard
 
 # DeathModeV2_Cardinal.stoploss
 CARDINAL_STOP_PCT = 0.03
+# Freqtrade futures stake is collateral. Position notional = collateral × leverage.
+CARDINAL_LEVERAGE = 3.0
+GOAL_EQUITY = 1_000_000.0
+
+
+def collateral_for_notional(notional: float, leverage: float) -> float:
+    """Convert a notional stake into the collateral Freqtrade will send.
+
+    Freqtrade computes base amount as ``stake / price * leverage``. The risk
+    gate's stake is notional, so the value returned to Freqtrade is notional
+    divided by leverage.
+    """
+    lev = float(leverage) if leverage and float(leverage) > 0 else 1.0
+    return float(notional) / lev
 
 
 @dataclass
