@@ -20,6 +20,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from core.exchange.lighter_marketdata import analyze_bundle
+from core.exchange.okx_private import account_from_env
 from core.exchange.okx_public import DEFAULT_SWAP_IDS, OkxPublicClient
 from core.risk.goal import growth_table
 from core.risk.journal import DecisionJournal
@@ -74,6 +75,15 @@ def main() -> int:
         print("equity and goal must be positive", file=sys.stderr)
         return 2
 
+    account = account_from_env(ROOT)
+    equity = args.equity
+    if account.get("authenticated"):
+        try:
+            live_equity = float(account.get("total_eq") or 0)
+        except (TypeError, ValueError):
+            live_equity = 0.0
+        if live_equity > 0:
+            equity = live_equity
     client = OkxPublicClient()
     specs = client.instruments()
     by_id = {spec.inst_id: spec for spec in specs}
@@ -109,7 +119,7 @@ def main() -> int:
         decision = evaluate_symbol(
             pair=spec.pair,
             signal=row["signal"],
-            equity=args.equity,
+            equity=equity,
             gate=gate,
             tilt=tilt,
             ct_val=spec.ct_val,
@@ -125,11 +135,12 @@ def main() -> int:
         journal.log(_decision_row(decision, gate.day_pnl))
         decisions.append((row, decision))
 
-    growth = growth_table(args.equity, args.goal, gate.config.max_risk, gate.config.min_rr)
+    growth = growth_table(equity, args.goal, gate.config.max_risk, gate.config.min_rr)
     payload = {
         "ts": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-        "venue": "okx-public",
-        "equity": args.equity,
+        "venue": "okx",
+        "account": account,
+        "equity": equity,
         "goal": args.goal,
         "goal_does_not_size": True,
         "growth": growth,
@@ -195,8 +206,15 @@ def main() -> int:
         print(json.dumps(payload, indent=2))
         return 0 if payload["ok"] else 2
 
-    print("DEATH MODE v2 — OKX public desk")
-    print(f"  {payload['ts']} equity={args.equity} goal={args.goal}")
+    print("DEATH MODE v2 — OKX desk")
+    print(f"  {payload['ts']} equity={equity} goal={args.goal}")
+    if account.get("authenticated"):
+        print(
+            f"  account: total_eq={account.get('total_eq')} usdt_free={account.get('usdt_free')} "
+            f"pos_mode={account.get('pos_mode')} positions={len(account.get('open_positions') or [])}"
+        )
+    else:
+        print(f"  account: {account.get('reason')}")
     print(
         f"  growth: breakeven win rate {growth['breakeven_win_rate']} "
         f"win pays {growth['win_pays']} loss costs {growth['loss_costs']}"

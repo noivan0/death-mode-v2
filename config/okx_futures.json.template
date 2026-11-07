@@ -33,8 +33,9 @@
   },
   "exchange": {
     "name": "okx",
-    "key": "${API_KEY}",
-    "secret": "${API_SECRET}",
+    "key": "${OKX_API_KEY}",
+    "secret": "${OKX_API_SECRET}",
+    "password": "${OKX_API_PASSPHRASE}",
     "pair_whitelist": [
       "BTC/USDT:USDT",
       "ETH/USDT:USDT",

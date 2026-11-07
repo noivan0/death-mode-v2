@@ -32,6 +32,9 @@ def test_env_status_masks_secrets():
         "LIGHTER_API_SECRET",
         "LIGHTER_PRIVATE_KEY",
         "HYPERLIQUID_PRIVATE_KEY",
+        "OKX_API_KEY",
+        "OKX_API_SECRET",
+        "OKX_API_PASSPHRASE",
     }
     for k, v in st["keys"].items():
         if k in secret_keys:
