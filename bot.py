@@ -6,9 +6,12 @@
   python bot.py stop [--exchange hl|lighter|all]
   python bot.py status
   python bot.py health
+  python bot.py risk
+  python bot.py lighter-audit
+  python bot.py verify-data
   python bot.py logs [exchange]
   python bot.py data-download [--days 30]
-  python bot.py backtest [--strategy DeathModeV2_Base]
+  python bot.py backtest [--strategy DeathModeV2_Cardinal]
 """
 import argparse
 import json
@@ -26,34 +29,63 @@ LOG_DIR = PROJ / "user_data" / "logs"
 STRATEGY_DIR = PROJ / "user_data" / "strategies"
 CONFIG_DIR = PROJ / "config"
 
+os.environ.setdefault("PROJ_DIR", str(PROJ))
+# Ensure core.risk is importable for Cardinal strategy / child processes
+_pp = str(PROJ)
+if _pp not in os.environ.get("PYTHONPATH", "").split(os.pathsep):
+    os.environ["PYTHONPATH"] = _pp + (os.pathsep + os.environ["PYTHONPATH"] if os.environ.get("PYTHONPATH") else "")
+
+# Prefer .env (secrets.env is legacy / symlink)
+try:
+    from core.env_loader import load_env
+
+    load_env(PROJ)
+except Exception:
+    pass
+
 os.makedirs(PID_DIR, exist_ok=True)
 os.makedirs(LOG_DIR, exist_ok=True)
 
+# 자율운영 기본 전략: Cardinal (Risk Gate + Tilt + 비대칭 청산)
+# 오버라이드: --strategy DeathModeV2_NFI | DeathModeV2_Base | ...
+DEFAULT_STRATEGY = os.environ.get("DM_STRATEGY", "DeathModeV2_Cardinal")
+
+def _lighter_config_name() -> str:
+    # Live when DM_LIVE=1 or explicit DM_LIGHTER_CONFIG.
+    explicit = os.environ.get("DM_LIGHTER_CONFIG")
+    if explicit:
+        return explicit
+    if os.environ.get("DM_LIVE", "0") == "1":
+        return "lighter_live_cardinal.json"
+    return "lighter_paper_cardinal.json"
+
+
 EXCHANGES = {
     "lighter": {
-        "config": "lighter_futures.json",
+        # paper default; live via DM_LIVE=1 or DM_LIGHTER_CONFIG.
+        "config": _lighter_config_name(),
         "port": 8091,
-        "strategy": "DeathModeV2_NFI",
+        "strategy": DEFAULT_STRATEGY,
     },
     "hyperliquid": {
-        "config": "hl_paper_ict.json",
+        "config": os.environ.get("DM_HL_CONFIG", "hl_paper_cardinal.json"),
         "port": 8092,
-        "strategy": "DeathModeV2_NFI",
+        "strategy": DEFAULT_STRATEGY,
     },
     "bitget": {
         "config": "bitget_futures.json",
         "port": 8093,
-        "strategy": "DeathModeV2_Base",
+        "strategy": DEFAULT_STRATEGY,
     },
     "bybit": {
         "config": "bybit_futures.json",
         "port": 8094,
-        "strategy": "DeathModeV2_Base",
+        "strategy": DEFAULT_STRATEGY,
     },
     "okx": {
         "config": "okx_futures.json",
         "port": 8095,
-        "strategy": "DeathModeV2_Base",
+        "strategy": DEFAULT_STRATEGY,
     },
 }
 
@@ -86,6 +118,12 @@ def start_exchange(name: str):
     if is_running(name):
         print(f"⚠️  {name} 이미 실행 중")
         return True
+
+    # Lighter: ensure ccxt.has.fetchOrder=True so Freqtrade validate_exchange passes
+    if name == "lighter":
+        patch = PROJ / "scripts" / "ensure_lighter_ccxt_patch.py"
+        if patch.exists():
+            subprocess.run([sys.executable, str(patch)], cwd=str(PROJ), check=False)
 
     ex = EXCHANGES[name]
     config_path = CONFIG_DIR / ex["config"]
@@ -199,9 +237,41 @@ def run_health():
         print("⚠️  health_monitor.py 없음")
 
 
+def run_risk():
+    """Cardinal risk / tilt status"""
+    rs = PROJ / "scripts" / "risk_status.py"
+    if rs.exists():
+        subprocess.run([sys.executable, str(rs)], cwd=str(PROJ))
+    else:
+        print("⚠️  risk_status.py 없음")
+
+
+def run_lighter_audit():
+    """Live Lighter API compatibility audit"""
+    script = PROJ / "scripts" / "lighter_api_audit.py"
+    if script.exists():
+        subprocess.run([sys.executable, str(script)], cwd=str(PROJ))
+    else:
+        print("⚠️  lighter_api_audit.py 없음")
+
+
+def run_verify_data():
+    """Live market-data → signal → RiskGate verification"""
+    script = PROJ / "scripts" / "verify_lighter_trading_data.py"
+    if script.exists():
+        raise SystemExit(subprocess.run([sys.executable, str(script)], cwd=str(PROJ)).returncode)
+    print("⚠️  verify_lighter_trading_data.py 없음")
+
+
 def main():
     parser = argparse.ArgumentParser(description="DEATH MODE v2 Bot Controller")
-    parser.add_argument("action", choices=["start", "stop", "restart", "status", "health", "logs", "data-download"])
+    parser.add_argument(
+        "action",
+        choices=[
+            "start", "stop", "restart", "status", "health", "risk",
+            "lighter-audit", "verify-data", "logs", "data-download",
+        ],
+    )
     parser.add_argument("--exchange", "-e", nargs="+", default=None,
                         help="거래소 이름 또는 'all' (기본: hyperliquid,lighter)")
     parser.add_argument("--strategy", "-s", default=None, help="전략명 override")
@@ -215,6 +285,18 @@ def main():
 
     if args.action == "health":
         run_health()
+        return
+
+    if args.action == "risk":
+        run_risk()
+        return
+
+    if args.action == "lighter-audit":
+        run_lighter_audit()
+        return
+
+    if args.action == "verify-data":
+        run_verify_data()
         return
 
     if args.action == "logs":

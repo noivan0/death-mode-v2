@@ -1,0 +1,13 @@
+[flake8]
+# NFI X7 is a multi-MB generated-style strategy; pyflakes hits RecursionError on it.
+# reference/ holds vendor/legacy snapshots not part of the active runtime path.
+max-line-length = 120
+extend-exclude =
+    .git,
+    __pycache__,
+    .venv,
+    venv,
+    user_data/strategies/NostalgiaForInfinityX7.py,
+    user_data/backtest_results,
+    reference,
+select = E9,F63,F7,F82

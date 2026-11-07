@@ -12,7 +12,7 @@ Hyperliquid와 Lighter 두 DEX를 동시에 운용하는 Freqtrade 기반 트레
 
 - **HL 봇**: Hyperliquid Perpetual Futures (9페어, USDC)
 - **Lighter 봇**: Lighter DEX ZK-rollup Perpetual (BTC/ETH/SOL, USDC)
-- **전략 버전**: `death-v2-nfi-1.2`
+- **전략 버전**: `death-v2-cardinal-1.0` (자율운영) / `death-v2-nfi-1.2` (참조)
 
 ---
 
@@ -70,16 +70,14 @@ git clone https://github.com/iterativv/NostalgiaForInfinity.git
 cp NostalgiaForInfinity/NostalgiaForInfinityX7.py death-mode-v2/user_data/strategies/
 ```
 
-### 2. 환경변수 설정
+### 2. 환경변수 설정 (`.env`)
 
 ```bash
-cp secrets.env.template secrets.env
-# secrets.env 편집:
-# HYPERLIQUID_WALLET_ADDRESS=0x...
-# HYPERLIQUID_PRIVATE_KEY=0x...
-# LIGHTER_PRIVATE_KEY=0x...
-# LIGHTER_ACCOUNT_INDEX=...
-# LIGHTER_API_KEY_INDEX=...
+cp .env.template .env && chmod 600 .env
+# .env 편집 후:
+bash scripts/manage_env.sh status
+bash scripts/manage_env.sh expand
+# secrets.env 는 .env 심볼릭 링크(하위호환)
 ```
 
 ### 3. Config 준비
@@ -87,10 +85,10 @@ cp secrets.env.template secrets.env
 ```bash
 # HL 봇 config
 cp config/hl_paper_ict.json.template config/hl_paper_ict.json
-# ← privateKey, walletAddress 직접 입력 또는 envsubst 사용
+# ← privateKey, walletAddress 직접 입력 또는 manage_env expand
 
-# Lighter는 config/lighter_futures.json 그대로 사용 가능
-# (privateKey는 환경변수 LIGHTER_PRIVATE_KEY로 주입)
+# Lighter futures config는 expand로 생성
+# (privateKey는 .env 의 LIGHTER_PRIVATE_KEY / LIGHTER_API_SECRET)
 ```
 
 ### 4. Lighter Exchange 등록
@@ -175,16 +173,47 @@ freqtrade trade \
 이 프로젝트는 Hermes Agent 기반 자율운영을 지원합니다:
 
 - **프로젝트 등록**: `.hermes/project.yml` — 전략/거래소/상태 정의
-- **CI/CD**: GitHub Actions (lint + import 검증 + config 유효성 검사)
-- **데일리 리포트**: `python scripts/daily_report.py` — 일일 P&L 및 거래 통계
+- **CI/CD**: GitHub Actions (lint + risk tests + import 검증 + config 유효성 검사)
+- **데일리 리포트**: `python scripts/daily_report.py` — 일일 P&L · payoff · expectancy(R)
+- **리스크 케이지**: `python bot.py risk` — kill switch / tilt / journal
+- **헬스체크**: `python scripts/health_monitor.py --check-once` (kill switch 시 재시작 억제)
 - **크론잡**: Hermes cron을 통한 주기적 P&L 모니터링 가능
+
+### Cardinal 케이지 (권장 자율운영 스택)
+
+| 레이어 | 역할 | 구현 |
+|--------|------|------|
+| Signal | NFI 진입 신호 | `DeathModeV2_Cardinal` |
+| TiltGuard | 보복매매 cooldown / shrink | `core/risk/tilt_guard.py` |
+| RiskGate | 고정 % 리스크 사이징 · min R:R · kill switch | `core/risk/risk_gate.py` |
+| Journal | allow/block/shrink 전부 기록 | `core/risk/journal.py` |
+| Exit | +3R/+5R 부분익절 후 trailing | Cardinal `adjust_trade_position` |
+
+원칙: **에이전트/LLM은 사이즈를 정하지 않는다. Python RiskGate만 정한다.**
+
+```bash
+# 자율운영 기동 전 — Lighter API 감사 + 실데이터 시그널/게이트 검증
+python bot.py lighter-audit
+python bot.py verify-data          # candles/funding/book/OI → Cardinal RiskGate
+
+# 페이퍼 (dry_run) — Lighter + DeathModeV2_Cardinal
+bash scripts/start_paper.sh
+# 또는: python bot.py start -e lighter
+python bot.py risk
+python bot.py health
+# API: http://127.0.0.1:8091  (death / deathpaper)
+```
+
+> **실전 적용 전 필수:** `secrets.env`의 `LIGHTER_CHAIN_ID=304`(mainnet), `lighter-sdk>=1.1.8`,
+> config `dry_run: true`로 페이퍼 검증 후 `false` 전환. Cardinal 케이지만으로 실전 완료가 아님.
 
 ### CI 상태
 
 `main` 브랜치 푸시 시 자동 실행:
 1. Flake8 린트 (심각도 E9/F63/F7/F82)
-2. 전략 import 검증
-3. JSON config 유효성 검사
+2. Cardinal risk / tilt pytest
+3. 전략 import 검증
+4. JSON config 유효성 검사
 
 ---
 
