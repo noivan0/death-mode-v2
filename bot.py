@@ -44,12 +44,13 @@ DEFAULT_STRATEGY = os.environ.get("DM_STRATEGY", "DeathModeV2_Cardinal")
 
 EXCHANGES = {
     "lighter": {
-        "config": "lighter_futures.json",
+        # dry-run paper default (Cardinal). Override via DM_LIGHTER_CONFIG.
+        "config": os.environ.get("DM_LIGHTER_CONFIG", "lighter_paper_cardinal.json"),
         "port": 8091,
         "strategy": DEFAULT_STRATEGY,
     },
     "hyperliquid": {
-        "config": "hl_paper_ict.json",
+        "config": os.environ.get("DM_HL_CONFIG", "hl_paper_cardinal.json"),
         "port": 8092,
         "strategy": DEFAULT_STRATEGY,
     },
@@ -99,6 +100,12 @@ def start_exchange(name: str):
     if is_running(name):
         print(f"⚠️  {name} 이미 실행 중")
         return True
+
+    # Lighter: ensure ccxt.has.fetchOrder=True so Freqtrade validate_exchange passes
+    if name == "lighter":
+        patch = PROJ / "scripts" / "ensure_lighter_ccxt_patch.py"
+        if patch.exists():
+            subprocess.run([sys.executable, str(patch)], cwd=str(PROJ), check=False)
 
     ex = EXCHANGES[name]
     config_path = CONFIG_DIR / ex["config"]

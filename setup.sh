@@ -66,6 +66,10 @@ fi
 echo ""
 echo "=== 5. Lighter Exchange 패치 ==="
 if command -v freqtrade &>/dev/null; then
+    # ccxt.has.fetchOrder must be True for validate_exchange (pro/async)
+    if [ -z "${DRY_RUN}" ] && [ -f "$PROJ/scripts/ensure_lighter_ccxt_patch.py" ]; then
+        python3 "$PROJ/scripts/ensure_lighter_ccxt_patch.py" || true
+    fi
     FT_DIR=$(python3 -c "import freqtrade; import os; print(os.path.dirname(freqtrade.__file__))" 2>/dev/null || echo "")
     if [ -n "$FT_DIR" ] && [ -f "$PROJ/exchange_patch/lighter.py" ]; then
         echo "  Freqtrade 경로: $FT_DIR"

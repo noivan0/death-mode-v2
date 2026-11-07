@@ -198,10 +198,12 @@ freqtrade trade \
 python bot.py lighter-audit
 python bot.py verify-data          # candles/funding/book/OI → Cardinal RiskGate
 
-# 자율운영 기동 (기본 전략 = DeathModeV2_Cardinal, dry_run 유지 권장)
-python bot.py start -e hyperliquid lighter
+# 페이퍼 (dry_run) — Lighter + DeathModeV2_Cardinal
+bash scripts/start_paper.sh
+# 또는: python bot.py start -e lighter
 python bot.py risk
 python bot.py health
+# API: http://127.0.0.1:8091  (death / deathpaper)
 ```
 
 > **실전 적용 전 필수:** `secrets.env`의 `LIGHTER_CHAIN_ID=304`(mainnet), `lighter-sdk>=1.1.8`,
