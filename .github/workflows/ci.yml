@@ -17,7 +17,8 @@ jobs:
       - name: Install deps
         run: pip install -r requirements.txt flake8 pytest
       - name: Flake8
-        run: flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        # .flake8 excludes NostalgiaForInfinityX7.py (pyflakes RecursionError on 3.4MB file)
+        run: flake8 . --count --show-source --statistics
       - name: Cardinal risk tests
         run: pytest tests/ -q
       - name: Check imports
@@ -29,6 +30,37 @@ jobs:
       - uses: actions/checkout@v4
       - name: Validate JSON configs
         run: |
-          for f in config/*.json config/*.json.template; do
-            python -m json.tool "$f" > /dev/null 2>&1 && echo "OK: $f" || echo "FAIL: $f"
+          set -euo pipefail
+          fail=0
+          # Runtime / paper JSON (must be strict JSON)
+          for f in config/*.json; do
+            [ -f "$f" ] || continue
+            if grep -q '\${' "$f"; then
+              echo "SKIP (unexpanded envsubst placeholders): $f"
+              continue
+            fi
+            if python -m json.tool "$f" > /dev/null; then
+              echo "OK: $f"
+            else
+              echo "FAIL: $f"
+              fail=1
+            fi
           done
+          # Templates: substitute ${...} with JSON-safe placeholders then parse
+          for f in config/*.json.template; do
+            [ -f "$f" ] || continue
+            tmp="$(mktemp)"
+            # Unquoted ${VAR:-123} → 0 ; quoted "${VAR}" → ""
+            sed -E \
+              -e 's/"\$\{[^}]+\}"/""/g' \
+              -e 's/\$\{[^}]+\}/0/g' \
+              "$f" > "$tmp"
+            if python -m json.tool "$tmp" > /dev/null; then
+              echo "OK: $f (envsubst-dry)"
+            else
+              echo "FAIL: $f"
+              fail=1
+            fi
+            rm -f "$tmp"
+          done
+          exit "$fail"
