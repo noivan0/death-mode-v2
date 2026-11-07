@@ -38,6 +38,8 @@
 - [x] WS shutdown 이벤트 재연결
 - [x] priceOracleInfo / OI utilization / frozen 감사 스크립트
 - [x] lighter-sdk≥1.1.8 핀 + stoploss_on_exchange 기본 ON
+- [x] LighterMarketData + live verify-data (candles/mark/funding/book/tape→RiskGate)
+- [x] RiskGate: R:R float epsilon + max_stake_mult (타이트 ATR 손절 노셔널 캡)
 - [ ] position-tied SL/TP grouped orders (SDK create_grouped_orders) Freqtrade 연동
 - [ ] historicalTrade / S3 public dataset 백필 파이프라인
 - [ ] 2026-11-08 L1CoreMessaging 컷오버 후 L1 priority TX 검증
