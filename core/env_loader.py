@@ -81,6 +81,9 @@ def env_status() -> dict:
         "LIGHTER_API_SECRET",
         "LIGHTER_PRIVATE_KEY",
         "LIGHTER_SKIP_SSL_VERIFY",
+        "OKX_API_KEY",
+        "OKX_API_SECRET",
+        "OKX_API_PASSPHRASE",
     ]
     status = {}
     secret_keys = {
@@ -88,6 +91,9 @@ def env_status() -> dict:
         "LIGHTER_API_SECRET",
         "LIGHTER_PRIVATE_KEY",
         "HYPERLIQUID_PRIVATE_KEY",
+        "OKX_API_KEY",
+        "OKX_API_SECRET",
+        "OKX_API_PASSPHRASE",
     }
     for k in keys:
         v = os.environ.get(k, "")

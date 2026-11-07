@@ -45,6 +45,7 @@ from core.risk import (
     TiltGuard,
     TradePlan,
 )
+from core.strategy.desk import CARDINAL_LEVERAGE, GOAL_EQUITY, collateral_for_notional
 
 log = logging.getLogger(__name__)
 
@@ -136,6 +137,9 @@ class DeathModeV2_Cardinal(NostalgiaForInfinityX7):
 
     def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         dataframe = super().populate_entry_trend(dataframe, metadata)
+        if "enter_short" in dataframe.columns:
+            dataframe["enter_short"] = 0
+
         if "enter_long" not in dataframe.columns:
             return dataframe
 
@@ -213,14 +217,29 @@ class DeathModeV2_Cardinal(NostalgiaForInfinityX7):
             log.info(f"[Cardinal] stake blocked {pair}: {result.reason}")
             return 0.0
 
-        stake = float((result.meta or {}).get("stake") or 0.0)
+        notional = float((result.meta or {}).get("stake") or 0.0)
+        stake = collateral_for_notional(notional, leverage)
         if max_stake is not None:
             stake = min(stake, max_stake)
         if min_stake is not None and stake < min_stake:
             # Below exchange minimum — skip rather than oversize risk
-            log.info(f"[Cardinal] stake {stake} < min_stake {min_stake} → skip")
+            log.info(f"[Cardinal] collateral {stake} < min_stake {min_stake} → skip")
             return 0.0
         return stake
+
+    def leverage(
+        self,
+        pair: str,
+        current_time: datetime,
+        current_rate: float,
+        proposed_leverage: float,
+        max_leverage: float,
+        entry_tag: Optional[str],
+        side: str,
+        **kwargs,
+    ) -> float:
+        cap = float(max_leverage) if max_leverage else CARDINAL_LEVERAGE
+        return min(CARDINAL_LEVERAGE, cap)
 
     def confirm_trade_entry(
         self,
@@ -234,6 +253,22 @@ class DeathModeV2_Cardinal(NostalgiaForInfinityX7):
         side: str,
         **kwargs,
     ) -> bool:
+        if side == "short":
+            log.info(f"[Cardinal] {pair} short blocked")
+            return False
+
+        goal = float(os.environ.get("DM_GOAL_EQUITY", str(GOAL_EQUITY)))
+        equity = 0.0
+        if self.wallets:
+            equity = float(self.wallets.get_total(self.config["stake_currency"]) or 0.0)
+        if equity >= goal:
+            log.warning(f"[Cardinal] goal reached equity={equity:.4f} goal={goal:.0f}")
+            self._journal.log({
+                "symbol": pair, "side": side, "action": "block",
+                "reason": "goal_reached", "entry": rate, "day_pnl": self._risk.day_pnl,
+            })
+            return False
+
         tag = entry_tag or ""
         for blocked in self.BLOCKED_SIGNALS:
             if blocked in tag.split():
@@ -367,6 +402,17 @@ class DeathModeV2_Cardinal(NostalgiaForInfinityX7):
     def bot_loop_start(self, current_time: datetime, **kwargs) -> None:
         if self._risk.killed:
             log.warning("[Cardinal] kill switch ON — entries blocked for the day")
+        minute = current_time.strftime("%Y-%m-%d %H:%M")
+        if getattr(self, "_status_minute", None) != minute:
+            self._status_minute = minute
+            equity = 0.0
+            if self.wallets:
+                equity = float(self.wallets.get_total(self.config["stake_currency"]) or 0.0)
+            goal = float(os.environ.get("DM_GOAL_EQUITY", str(GOAL_EQUITY)))
+            log.info(
+                f"[Cardinal] equity={equity:.4f} goal={goal:.0f} "
+                f"day_pnl={self._risk.day_pnl:.4f} killed={self._risk.killed}"
+            )
         self._sync_closed_trades(current_time)
 
     def _sync_closed_trades(self, current_time: datetime) -> None:

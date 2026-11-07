@@ -9,6 +9,7 @@
   python bot.py risk
   python bot.py lighter-audit
   python bot.py verify-data
+  python bot.py okx-desk
   python bot.py logs [exchange]
   python bot.py data-download [--days 30]
   python bot.py backtest [--strategy DeathModeV2_Cardinal]
@@ -263,13 +264,24 @@ def run_verify_data():
     print("⚠️  verify_lighter_trading_data.py 없음")
 
 
+def run_okx_desk():
+    """OKX public candles, book, funding → Cardinal desk at the $80 book."""
+    script = PROJ / "scripts" / "collect_okx_desk.py"
+    if script.exists():
+        raise SystemExit(subprocess.run(
+            [sys.executable, str(script), "--equity", "80", "--goal", "1000000"],
+            cwd=str(PROJ),
+        ).returncode)
+    print("⚠️  collect_okx_desk.py 없음")
+
+
 def main():
     parser = argparse.ArgumentParser(description="DEATH MODE v2 Bot Controller")
     parser.add_argument(
         "action",
         choices=[
             "start", "stop", "restart", "status", "health", "risk",
-            "lighter-audit", "verify-data", "logs", "data-download",
+            "lighter-audit", "verify-data", "okx-desk", "logs", "data-download",
         ],
     )
     parser.add_argument("--exchange", "-e", nargs="+", default=None,
@@ -297,6 +309,10 @@ def main():
 
     if args.action == "verify-data":
         run_verify_data()
+        return
+
+    if args.action == "okx-desk":
+        run_okx_desk()
         return
 
     if args.action == "logs":

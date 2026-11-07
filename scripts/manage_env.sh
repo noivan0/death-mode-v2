@@ -49,13 +49,14 @@ cmd_status() {
     LIGHTER_ACCOUNT_INDEX LIGHTER_API_KEY_INDEX LIGHTER_CHAIN_ID \
     LIGHTER_API_KEY LIGHTER_API_SECRET LIGHTER_PRIVATE_KEY \
     LIGHTER_SKIP_SSL_VERIFY LIGHTER_BASE_URL \
+    OKX_API_KEY OKX_API_SECRET OKX_API_PASSPHRASE \
     HYPERLIQUID_WALLET_ADDRESS HYPERLIQUID_PRIVATE_KEY \
     DM_STRATEGY DM_MAX_RISK DM_MAX_DAY_LOSS
   do
     v="${!k-}"
     if [[ -z "${v}" ]]; then
       printf "%-28s %s\n" "$k" "empty"
-    elif [[ "$k" == LIGHTER_API_KEY || "$k" == LIGHTER_API_SECRET || "$k" == LIGHTER_PRIVATE_KEY || "$k" == HYPERLIQUID_PRIVATE_KEY ]]; then
+    elif [[ "$k" == LIGHTER_API_KEY || "$k" == LIGHTER_API_SECRET || "$k" == LIGHTER_PRIVATE_KEY || "$k" == HYPERLIQUID_PRIVATE_KEY || "$k" == OKX_API_KEY || "$k" == OKX_API_SECRET || "$k" == OKX_API_PASSPHRASE ]]; then
       printf "%-28s %s\n" "$k" "set(len=${#v})"
     else
       printf "%-28s %s\n" "$k" "$v"
