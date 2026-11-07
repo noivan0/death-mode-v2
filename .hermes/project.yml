@@ -3,13 +3,24 @@ description: "NFI X7 Multi-Exchange Trading Bot — Hyperliquid + Lighter DEX"
 repo: https://github.com/noivan0/death-mode-v2
 workdir: /mnt/d/death-mode-v2
 strategies:
-  - DeathModeV2_NFI (메인, 추천)
+  - DeathModeV2_Cardinal (자율운영 기본 — Risk Gate + Tilt + 비대칭)
+  - DeathModeV2_NFI (NFI 순수 상속)
   - DeathModeV2_Base (보수적)
   - DeathModeV2_Sharp (승률최적 v1)
   - DeathModeV2_SharpV2 (승률최적 v2)
   - DeathModeV2_ICT (ICT 분석)
   - DeathModeV2_OrderFlow (오더플로우 v2)
   - DeathModeV2_OF (오더플로우 v1)
+risk_cage:
+  module: core.risk
+  kill_switch: DM_MAX_DAY_LOSS
+  max_risk: DM_MAX_RISK
+  min_rr: DM_MIN_RR
+  commands:
+    - python bot.py risk
+    - python scripts/risk_status.py
+    - python scripts/daily_report.py
+    - python scripts/health_monitor.py --check-once
 exchanges:
   - hyperliquid (isolated)
   - lighter (cross)

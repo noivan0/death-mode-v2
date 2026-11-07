@@ -29,10 +29,21 @@ docker compose --profile hyperliquid up -d
 
 | 용도 | 추천 전략 | 이유 |
 |------|-----------|------|
+| 자율운영 (기본) | DeathModeV2_Cardinal | Risk Gate + Tilt + 고정R 사이징 + 3R/5R 부분익절 |
 | 실전 (안정) | DeathModeV2_Base | stoploss 7%, trailing, DCA 강제청산 |
 | 실전 (공격) | DeathModeV2_SharpV2 | Grinding 차단, ROI 타이트 |
 | 페이퍼/백테스트 | DeathModeV2_NFI | NFI X7 순수 상속 (참조용) |
 | 분석 | DeathModeV2_ICT / OrderFlow | ICT 기법 / CVD 로깅 |
+
+## Cardinal 케이지 (자율운영 필수)
+
+참조: alpha404ai Cardinal desk + Martin Luk 손익 비대칭 (dubidubabap).
+
+- `core/risk/risk_gate.py` — 사이즈·kill switch·min R:R (LLM 금지)
+- `core/risk/tilt_guard.py` — 복수 보복매매 cooldown / shrink
+- `core/risk/journal.py` — allow/block/shrink 전부 기록
+- 상태: `python bot.py risk` 또는 `python scripts/risk_status.py`
+- 환경변수: `DM_MAX_RISK` (기본 0.005), `DM_MAX_DAY_LOSS` (0.02), `DM_MIN_RR` (2.0), `DM_STRATEGY`
 
 ## 설정 파일
 

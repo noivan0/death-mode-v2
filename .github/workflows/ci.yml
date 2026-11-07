@@ -15,9 +15,11 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install deps
-        run: pip install -r requirements.txt flake8
+        run: pip install -r requirements.txt flake8 pytest
       - name: Flake8
         run: flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+      - name: Cardinal risk tests
+        run: pytest tests/ -q
       - name: Check imports
         run: python scripts/ci_check_imports.py
 

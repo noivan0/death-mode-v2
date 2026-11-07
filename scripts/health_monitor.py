@@ -94,6 +94,24 @@ def auto_recover(name: str):
     return "auto_recovery: pm.sh not found"
 
 
+def check_cardinal_risk() -> dict:
+    """Inspect RiskGate / TiltGuard state files."""
+    sys.path.insert(0, str(PROJ))
+    try:
+        from core.risk import RiskGate, TiltGuard, DecisionJournal
+        gate = RiskGate()
+        tilt = TiltGuard()
+        return {
+            "ok": True,
+            "killed": gate.killed,
+            "day_pnl": gate.day_pnl,
+            "tilt_score": tilt.tilt_score(),
+            "journal": DecisionJournal().summarize(),
+        }
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+
+
 def main():
     check_once = "--check-once" in sys.argv
 
@@ -134,13 +152,29 @@ def main():
     else:
         print("  ✅ 에러 없음")
 
-    # 4. 자동 복구
+    # 4. Cardinal risk cage
+    print("\n=== 4. Cardinal Risk Cage ===")
+    risk = check_cardinal_risk()
+    if not risk.get("ok"):
+        print(f"  ⚠️  risk status unavailable: {risk.get('error')}")
+    else:
+        kill_icon = "🛑" if risk["killed"] else "✅"
+        print(f"  {kill_icon} kill_switch={'ON' if risk['killed'] else 'OFF'}  day_pnl={risk['day_pnl']:.4f}")
+        print(f"  🌡️  tilt_score={risk['tilt_score']}/100")
+        j = risk.get("journal") or {}
+        print(f"  📓 journal allow/block/shrink="
+              f"{j.get('allows')}/{j.get('blocks')}/{j.get('shrinks')}")
+
+    # 5. 자동 복구 (kill switch ON이면 재시작하지 않음 — 의도된 정지)
     if dead:
-        print(f"\n=== 4. 자동 복구 ===")
-        for p in dead:
-            print(f"  🔄 {p['name']} 재시작 중...")
-            result = auto_recover(p["name"])
-            print(f"  {result}")
+        print(f"\n=== 5. 자동 복구 ===")
+        if risk.get("killed"):
+            print("  🛑 kill switch ON — auto-restart suppressed")
+        else:
+            for p in dead:
+                print(f"  🔄 {p['name']} 재시작 중...")
+                result = auto_recover(p["name"])
+                print(f"  {result}")
 
     if check_once:
         return
@@ -152,10 +186,13 @@ def main():
             time.sleep(30)
             procs = [check_running(ex) for ex in EXCHANGES]
             dead_now = [p for p in procs if not p["running"] and p.get("reason") == "process_dead"]
-            if dead_now:
+            risk_now = check_cardinal_risk()
+            if dead_now and not risk_now.get("killed"):
                 for p in dead_now:
                     print(f"[{datetime.now().isoformat()}] 🔄 {p['name']} 재시작")
                     auto_recover(p["name"])
+            elif dead_now and risk_now.get("killed"):
+                print(f"[{datetime.now().isoformat()}] 🛑 kill switch — restart skipped")
     except KeyboardInterrupt:
         print("\n모니터링 종료")
 

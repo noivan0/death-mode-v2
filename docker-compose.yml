@@ -5,6 +5,7 @@
 #   - 모든 secrets: secrets.env (gitignore 대상)
 #   - Python 버전: entrypoint_patch.sh 동적 감지
 #   - verify=False: LIGHTER_SKIP_SSL_VERIFY=1 (HMG 사내망만)
+#   - 기본 전략: DeathModeV2_Cardinal (Risk Gate + Tilt)
 #
 # 포트 배정:
 #   8082 = lighter    (DEX, USDC)
@@ -30,11 +31,13 @@ x-freqtrade-common: &freqtrade-common
   volumes:
     - ./user_data:/freqtrade/user_data
     - ./config:/freqtrade/config
+    - ./core:/freqtrade/core:ro
     - ./exchange_patch/lighter.py:/freqtrade/freqtrade/exchange/lighter.py:ro
     - ./exchange_patch/__init__.py:/freqtrade/freqtrade/exchange/__init__.py:ro
     - ./exchange_patch:/ft_patches:ro
   environment:
     - TZ=UTC
+    - PYTHONPATH=/freqtrade
   entrypoint: ["/bin/bash", "/ft_patches/entrypoint_patch.sh"]
   healthcheck:
     test:
@@ -64,7 +67,9 @@ services:
       - --config
       - /freqtrade/config/lighter_futures.json
       - --strategy
-      - NostalgiaForInfinityX7
+      - DeathModeV2_Cardinal
+      - --strategy-path
+      - /freqtrade/user_data/strategies
 
   freqtrade-hyperliquid:
     <<: *freqtrade-common
@@ -76,7 +81,9 @@ services:
       - --config
       - /freqtrade/config/hyperliquid_futures.json
       - --strategy
-      - NostalgiaForInfinityX7
+      - DeathModeV2_Cardinal
+      - --strategy-path
+      - /freqtrade/user_data/strategies
     profiles:
       - hyperliquid
 
@@ -90,7 +97,9 @@ services:
       - --config
       - /freqtrade/config/binance_futures.json
       - --strategy
-      - NostalgiaForInfinityX7
+      - DeathModeV2_Cardinal
+      - --strategy-path
+      - /freqtrade/user_data/strategies
     profiles:
       - cex
       - binance
@@ -105,7 +114,9 @@ services:
       - --config
       - /freqtrade/config/bybit_futures.json
       - --strategy
-      - NostalgiaForInfinityX7
+      - DeathModeV2_Cardinal
+      - --strategy-path
+      - /freqtrade/user_data/strategies
     profiles:
       - cex
       - bybit
@@ -120,7 +131,9 @@ services:
       - --config
       - /freqtrade/config/bitget_futures.json
       - --strategy
-      - NostalgiaForInfinityX7
+      - DeathModeV2_Cardinal
+      - --strategy-path
+      - /freqtrade/user_data/strategies
     profiles:
       - cex
       - bitget
@@ -135,7 +148,9 @@ services:
       - --config
       - /freqtrade/config/okx_futures.json
       - --strategy
-      - NostalgiaForInfinityX7
+      - DeathModeV2_Cardinal
+      - --strategy-path
+      - /freqtrade/user_data/strategies
     profiles:
       - cex
       - okx

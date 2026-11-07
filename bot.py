@@ -6,9 +6,10 @@
   python bot.py stop [--exchange hl|lighter|all]
   python bot.py status
   python bot.py health
+  python bot.py risk
   python bot.py logs [exchange]
   python bot.py data-download [--days 30]
-  python bot.py backtest [--strategy DeathModeV2_Base]
+  python bot.py backtest [--strategy DeathModeV2_Cardinal]
 """
 import argparse
 import json
@@ -26,34 +27,44 @@ LOG_DIR = PROJ / "user_data" / "logs"
 STRATEGY_DIR = PROJ / "user_data" / "strategies"
 CONFIG_DIR = PROJ / "config"
 
+os.environ.setdefault("PROJ_DIR", str(PROJ))
+# Ensure core.risk is importable for Cardinal strategy / child processes
+_pp = str(PROJ)
+if _pp not in os.environ.get("PYTHONPATH", "").split(os.pathsep):
+    os.environ["PYTHONPATH"] = _pp + (os.pathsep + os.environ["PYTHONPATH"] if os.environ.get("PYTHONPATH") else "")
+
 os.makedirs(PID_DIR, exist_ok=True)
 os.makedirs(LOG_DIR, exist_ok=True)
+
+# 자율운영 기본 전략: Cardinal (Risk Gate + Tilt + 비대칭 청산)
+# 오버라이드: --strategy DeathModeV2_NFI | DeathModeV2_Base | ...
+DEFAULT_STRATEGY = os.environ.get("DM_STRATEGY", "DeathModeV2_Cardinal")
 
 EXCHANGES = {
     "lighter": {
         "config": "lighter_futures.json",
         "port": 8091,
-        "strategy": "DeathModeV2_NFI",
+        "strategy": DEFAULT_STRATEGY,
     },
     "hyperliquid": {
         "config": "hl_paper_ict.json",
         "port": 8092,
-        "strategy": "DeathModeV2_NFI",
+        "strategy": DEFAULT_STRATEGY,
     },
     "bitget": {
         "config": "bitget_futures.json",
         "port": 8093,
-        "strategy": "DeathModeV2_Base",
+        "strategy": DEFAULT_STRATEGY,
     },
     "bybit": {
         "config": "bybit_futures.json",
         "port": 8094,
-        "strategy": "DeathModeV2_Base",
+        "strategy": DEFAULT_STRATEGY,
     },
     "okx": {
         "config": "okx_futures.json",
         "port": 8095,
-        "strategy": "DeathModeV2_Base",
+        "strategy": DEFAULT_STRATEGY,
     },
 }
 
@@ -199,9 +210,21 @@ def run_health():
         print("⚠️  health_monitor.py 없음")
 
 
+def run_risk():
+    """Cardinal risk / tilt status"""
+    rs = PROJ / "scripts" / "risk_status.py"
+    if rs.exists():
+        subprocess.run([sys.executable, str(rs)], cwd=str(PROJ))
+    else:
+        print("⚠️  risk_status.py 없음")
+
+
 def main():
     parser = argparse.ArgumentParser(description="DEATH MODE v2 Bot Controller")
-    parser.add_argument("action", choices=["start", "stop", "restart", "status", "health", "logs", "data-download"])
+    parser.add_argument(
+        "action",
+        choices=["start", "stop", "restart", "status", "health", "risk", "logs", "data-download"],
+    )
     parser.add_argument("--exchange", "-e", nargs="+", default=None,
                         help="거래소 이름 또는 'all' (기본: hyperliquid,lighter)")
     parser.add_argument("--strategy", "-s", default=None, help="전략명 override")
@@ -215,6 +238,10 @@ def main():
 
     if args.action == "health":
         run_health()
+        return
+
+    if args.action == "risk":
+        run_risk()
         return
 
     if args.action == "logs":

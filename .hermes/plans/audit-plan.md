@@ -17,10 +17,20 @@
 - [ ] scripts/ 모든 스크립트 실행 테스트
 
 ## Phase 3: 자동화
-- [ ] 데이터 자동 다운로드 파이프라인
-- [ ] 봇 상태 자동 복구 (healthcheck + restart)
-- [ ] P&L 모니터링 강화
+- [x] 데이터 자동 다운로드 파이프라인
+- [x] 봇 상태 자동 복구 (healthcheck + restart)
+- [x] P&L 모니터링 강화
 - [ ] Webhook 기반 알림
+
+## Phase 3.5: Cardinal 케이지 (자율운영 강화)
+- [x] RiskGate — fixed equity risk / min R:R / daily kill switch
+- [x] TiltGuard — revenge cooldown / shrink / asset stop block
+- [x] DecisionJournal — allow/block/shrink 전부 기록
+- [x] DeathModeV2_Cardinal — 눌림목 선호 + 3R/5R 부분익절 + trailing
+- [x] health_monitor kill-switch 인식 (재시작 억제)
+- [x] pytest for risk_gate + tilt_guard
+- [ ] Webhook: kill switch / tilt block 알림
+- [ ] 14일 페이퍼 A/B (rules-only vs Cardinal cage)
 
 ## Phase 4: 배포
 - [ ] Docker Compose 실제 실행 테스트

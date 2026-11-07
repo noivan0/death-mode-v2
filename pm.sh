@@ -23,6 +23,10 @@ LOG_DIR="$PROJECT_DIR/user_data/logs"
 PID_DIR="$PROJECT_DIR/.pids"
 STRATEGY_DIR="$PROJECT_DIR/user_data/strategies"
 
+# Cardinal risk stack import path
+export PYTHONPATH="${PROJECT_DIR}${PYTHONPATH:+:$PYTHONPATH}"
+export PROJ_DIR="${PROJ_DIR:-$PROJECT_DIR}"
+
 mkdir -p "$LOG_DIR" "$PID_DIR"
 
 # ── 거래소 정의 ────────────────────────────────────────────────
@@ -92,10 +96,11 @@ start_exchange() {
         return 0
     fi
 
-    echo "[pm] 🚀 $exchange 시작..."
+    local strategy="${DM_STRATEGY:-DeathModeV2_Cardinal}"
+    echo "[pm] 🚀 $exchange 시작 (strategy=$strategy)..."
     nohup "$FREQTRADE" trade \
         --config "$config_path" \
-        --strategy NostalgiaForInfinityX7 \
+        --strategy "$strategy" \
         --strategy-path "$STRATEGY_DIR" \
         --userdir "$PROJECT_DIR/user_data" \
         >> "$logfile" 2>&1 &

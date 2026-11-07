@@ -1,0 +1,20 @@
+---
+description: DEATH MODE Cardinal desk laws for autonomous trading
+alwaysApply: true
+---
+
+# Cardinal Desk Laws
+
+Derived from alpha404ai Cardinal pattern + Martin Luk asymmetry (dubidubabap).
+
+- Keys come only from env vars / `secrets.env`. Never write a key into a file that is committed.
+- No code may call withdraw or transfer endpoints.
+- LLM / agent output never sets position size. Size comes from `core.risk.risk_gate.RiskGate`.
+- Parse every LLM answer with a strict parser. `None` means skip — never retry into a trade.
+- Every allow / shrink / block decision goes to `DecisionJournal` (`user_data/logs/journal.csv`).
+- Paper / dry-run is the default. Live requires an explicit config change (`dry_run: false`) plus human review.
+- Min reward:risk is 2.0 unless `DM_MIN_RR` is set. Daily kill switch defaults to 2% equity (`DM_MAX_DAY_LOSS`).
+- Per-trade risk defaults to 0.5% equity (`DM_MAX_RISK`).
+- TiltGuard owns revenge-trading cooldowns; RiskGate owns sizing and kill switch. Do not merge them into strategy spaghetti.
+- Prefer pullbacks (EMA9/21 / VWAP) over breakouts for long entries when using `DeathModeV2_Cardinal`.
+- Cut losses at the planned stop; let winners run via partial TP at +3R/+5R then trailing.
