@@ -1,0 +1,94 @@
+{
+  "max_open_trades": 1,
+  "stake_currency": "USDC",
+  "stake_amount": 30,
+  "tradable_balance_ratio": 0.95,
+  "fiat_display_currency": "USD",
+  "dry_run": false,
+  "cancel_open_orders_on_exit": true,
+  "trading_mode": "futures",
+  "margin_mode": "cross",
+  "liquidation_buffer": 0.05,
+  "candle_type_def": "futures",
+  "process_throttle_secs": 5,
+  "entry_pricing": {
+    "price_side": "same",
+    "use_order_book": true,
+    "order_book_top": 1
+  },
+  "exit_pricing": {
+    "price_side": "same",
+    "use_order_book": true,
+    "order_book_top": 1
+  },
+  "order_types": {
+    "entry": "limit",
+    "exit": "limit",
+    "stoploss": "limit",
+    "stoploss_on_exchange": true,
+    "stoploss_on_exchange_interval": 60,
+    "stoploss_on_exchange_limit_ratio": 0.99
+  },
+  "order_time_in_force": {
+    "entry": "GTC",
+    "exit": "GTC"
+  },
+  "exchange": {
+    "name": "lighter",
+    "key": "",
+    "secret": "${LIGHTER_API_SECRET}",
+    "ccxt_config": {
+      "options": {
+        "accountIndex": ${LIGHTER_ACCOUNT_INDEX:-1058},
+        "apiKeyIndex": ${LIGHTER_API_KEY_INDEX:-0},
+        "chainId": ${LIGHTER_CHAIN_ID:-304}
+      },
+      "privateKey": "${LIGHTER_PRIVATE_KEY}",
+      "enableRateLimit": true
+    },
+    "ccxt_async_config": {
+      "options": {
+        "accountIndex": ${LIGHTER_ACCOUNT_INDEX:-1058},
+        "apiKeyIndex": ${LIGHTER_API_KEY_INDEX:-0},
+        "chainId": ${LIGHTER_CHAIN_ID:-304}
+      },
+      "privateKey": "${LIGHTER_PRIVATE_KEY}",
+      "enableRateLimit": true
+    },
+    "pair_whitelist": [
+      "ETH/USDC:USDC",
+      "SOL/USDC:USDC",
+      "BTC/USDC:USDC"
+    ],
+    "pair_blacklist": []
+  },
+  "pairlists": [
+    {"method": "StaticPairList"}
+  ],
+  "telegram": {
+    "enabled": false,
+    "token": "",
+    "chat_id": ""
+  },
+  "api_server": {
+    "enabled": true,
+    "listen_ip_address": "127.0.0.1",
+    "listen_port": 8091,
+    "verbosity": "error",
+    "jwt_secret_key": "death-mode-live-jwt-change-me",
+    "username": "death",
+    "password": "deathlive",
+    "ws_token": "death-live-ws-token"
+  },
+  "bot_name": "death-lighter-live-cardinal",
+  "initial_state": "running",
+  "force_entry_enable": false,
+  "internals": {
+    "process_throttle_secs": 5
+  },
+  "db_url": "sqlite:///user_data/tradesv3_lighter_live_cardinal.sqlite",
+  "logfile": "user_data/logs/lighter_live_cardinal.log",
+  "user_data_dir": "user_data",
+  "strategy": "DeathModeV2_Cardinal",
+  "strategy_path": "user_data/strategies"
+}

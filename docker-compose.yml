@@ -68,7 +68,7 @@ services:
     command:
       - trade
       - --config
-      - /freqtrade/config/lighter_futures.json
+      - /freqtrade/config/lighter_live_cardinal.json
       - --strategy
       - DeathModeV2_Cardinal
       - --strategy-path

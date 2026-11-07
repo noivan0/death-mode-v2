@@ -50,3 +50,6 @@ user_data/logs/journal.csv
 
 # 백테스트 ZIP (원본 유지, 압축 해제 결과는 추적)
 user_data/backtest_results/*.zip
+
+# Live runtime config (contains privateKey after expand)
+config/lighter_live_cardinal.json

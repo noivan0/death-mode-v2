@@ -50,10 +50,20 @@ os.makedirs(LOG_DIR, exist_ok=True)
 # 오버라이드: --strategy DeathModeV2_NFI | DeathModeV2_Base | ...
 DEFAULT_STRATEGY = os.environ.get("DM_STRATEGY", "DeathModeV2_Cardinal")
 
+def _lighter_config_name() -> str:
+    # Live when DM_LIVE=1 or explicit DM_LIGHTER_CONFIG.
+    explicit = os.environ.get("DM_LIGHTER_CONFIG")
+    if explicit:
+        return explicit
+    if os.environ.get("DM_LIVE", "0") == "1":
+        return "lighter_live_cardinal.json"
+    return "lighter_paper_cardinal.json"
+
+
 EXCHANGES = {
     "lighter": {
-        # dry-run paper default (Cardinal). Override via DM_LIGHTER_CONFIG.
-        "config": os.environ.get("DM_LIGHTER_CONFIG", "lighter_paper_cardinal.json"),
+        # paper default; live via DM_LIVE=1 or DM_LIGHTER_CONFIG.
+        "config": _lighter_config_name(),
         "port": 8091,
         "strategy": DEFAULT_STRATEGY,
     },

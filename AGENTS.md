@@ -9,11 +9,16 @@
 ## 시작 명령어
 
 ```bash
-# 페이퍼 트레이딩 (HL)
-freqtrade trade --config config/hl_paper_ict.json --strategy DeathModeV2_NFI --strategy-path user_data/strategies/
+# 페이퍼 (Lighter Cardinal)
+bash scripts/start_paper.sh
 
-# 페이퍼 트레이딩 (Lighter)
-freqtrade trade --config config/lighter_futures.json --strategy DeathModeV2_NFI --strategy-path user_data/strategies/
+# 실전 futures (허용 관할 네트워크에서만)
+bash scripts/manage_env.sh status
+python scripts/preflight_live.py
+bash scripts/start_live.sh
+
+# 읽기 전용 자율 모니터 (Cloud VM에서도 가능)
+python scripts/autonomy_monitor.py --once
 
 # pm.sh
 ./pm.sh start [lighter|hyperliquid|all]
