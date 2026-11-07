@@ -70,16 +70,14 @@ git clone https://github.com/iterativv/NostalgiaForInfinity.git
 cp NostalgiaForInfinity/NostalgiaForInfinityX7.py death-mode-v2/user_data/strategies/
 ```
 
-### 2. 환경변수 설정
+### 2. 환경변수 설정 (`.env`)
 
 ```bash
-cp secrets.env.template secrets.env
-# secrets.env 편집:
-# HYPERLIQUID_WALLET_ADDRESS=0x...
-# HYPERLIQUID_PRIVATE_KEY=0x...
-# LIGHTER_PRIVATE_KEY=0x...
-# LIGHTER_ACCOUNT_INDEX=...
-# LIGHTER_API_KEY_INDEX=...
+cp .env.template .env && chmod 600 .env
+# .env 편집 후:
+bash scripts/manage_env.sh status
+bash scripts/manage_env.sh expand
+# secrets.env 는 .env 심볼릭 링크(하위호환)
 ```
 
 ### 3. Config 준비
@@ -87,10 +85,10 @@ cp secrets.env.template secrets.env
 ```bash
 # HL 봇 config
 cp config/hl_paper_ict.json.template config/hl_paper_ict.json
-# ← privateKey, walletAddress 직접 입력 또는 envsubst 사용
+# ← privateKey, walletAddress 직접 입력 또는 manage_env expand
 
-# Lighter는 config/lighter_futures.json 그대로 사용 가능
-# (privateKey는 환경변수 LIGHTER_PRIVATE_KEY로 주입)
+# Lighter futures config는 expand로 생성
+# (privateKey는 .env 의 LIGHTER_PRIVATE_KEY / LIGHTER_API_SECRET)
 ```
 
 ### 4. Lighter Exchange 등록

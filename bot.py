@@ -35,6 +35,14 @@ _pp = str(PROJ)
 if _pp not in os.environ.get("PYTHONPATH", "").split(os.pathsep):
     os.environ["PYTHONPATH"] = _pp + (os.pathsep + os.environ["PYTHONPATH"] if os.environ.get("PYTHONPATH") else "")
 
+# Prefer .env (secrets.env is legacy / symlink)
+try:
+    from core.env_loader import load_env
+
+    load_env(PROJ)
+except Exception:
+    pass
+
 os.makedirs(PID_DIR, exist_ok=True)
 os.makedirs(LOG_DIR, exist_ok=True)
 

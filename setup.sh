@@ -5,7 +5,7 @@
 #
 # 이 스크립트가 하는 일:
 #   1. 템플릿 → 실제 config 파일 생성 (envsubst)
-#   2. secrets.env 샘플 생성
+#   2. .env 샘플 생성 (secrets.env → .env 심볼릭 링크)
 #   3. 필요한 디렉토리 생성
 #   4. Freqtrade 설치 확인
 #   5. Lighter Exchange 패치 적용
@@ -32,15 +32,27 @@ for tmpl in "$PROJ"/config/*.json.template; do
     fi
 done
 
-# ── 2. secrets.env ───────────────────────────────────────────────
+# ── 2. .env (canonical secrets) ──────────────────────────────────
 echo ""
-echo "=== 2. secrets.env ==="
-if [ ! -f "$PROJ/secrets.env" ]; then
-    cp "$PROJ/secrets.env.template" "$PROJ/secrets.env"
-    echo "  ✅ secrets.env 생성됨 (편집 필요)"
-    echo "  ⚠️  nano $PROJ/secrets.env 에서 API 키를 입력하세요"
+echo "=== 2. .env ==="
+if [ ! -f "$PROJ/.env" ]; then
+    if [ -f "$PROJ/secrets.env" ] && [ ! -L "$PROJ/secrets.env" ]; then
+        echo "  migrating secrets.env → .env"
+        [ -z "${DRY_RUN}" ] && mv "$PROJ/secrets.env" "$PROJ/.env"
+    else
+        SRC="$PROJ/.env.template"
+        [ -f "$SRC" ] || SRC="$PROJ/secrets.env.template"
+        [ -z "${DRY_RUN}" ] && cp "$SRC" "$PROJ/.env" && chmod 600 "$PROJ/.env"
+        echo "  ✅ .env 생성됨 (편집 필요)"
+        echo "  ⚠️  nano $PROJ/.env 에서 API 키를 입력하세요"
+    fi
 else
-    echo "  ✅ secrets.env 이미 존재"
+    echo "  ✅ .env 이미 존재"
+fi
+# Back-compat: secrets.env → .env
+if [ -z "${DRY_RUN}" ] && [ -f "$PROJ/.env" ]; then
+    ln -sfn .env "$PROJ/secrets.env"
+    echo "  ✅ secrets.env → .env (symlink)"
 fi
 
 # ── 3. 디렉토리 생성 ─────────────────────────────────────────────
@@ -114,8 +126,10 @@ echo "✅ DEATH MODE v2 설정 완료"
 echo "========================================"
 echo ""
 echo "다음 단계:"
-echo "  1. nano $PROJ/secrets.env   (API 키 입력)"
-echo "  2. bash $PROJ/scripts/start_bots.sh  (페이퍼 트레이딩 시작)"
-echo "  3. docker compose up -d              (Docker 실행)"
+echo "  1. nano $PROJ/.env                   (API 키 입력)"
+echo "  2. bash $PROJ/scripts/manage_env.sh status"
+echo "  3. bash $PROJ/scripts/manage_env.sh expand"
+echo "  4. bash $PROJ/scripts/start_paper.sh  (페이퍼 트레이딩)"
+echo "  5. docker compose up -d               (Docker 실행)"
 echo ""
 echo "자세한 내용: README.md"

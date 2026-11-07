@@ -26,6 +26,11 @@ STRATEGY_DIR="$PROJECT_DIR/user_data/strategies"
 # Cardinal risk stack import path
 export PYTHONPATH="${PROJECT_DIR}${PYTHONPATH:+:$PYTHONPATH}"
 export PROJ_DIR="${PROJ_DIR:-$PROJECT_DIR}"
+export PROJ="${PROJ:-$PROJECT_DIR}"
+
+# Prefer .env (secrets.env is legacy / symlink)
+# shellcheck disable=SC1091
+source "$PROJECT_DIR/scripts/load_env.sh"
 
 mkdir -p "$LOG_DIR" "$PID_DIR"
 

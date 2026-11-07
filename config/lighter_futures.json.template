@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.freqtrade.io/schema.json",
   "_comment": "DEATH MODE v2 — Lighter DEX Config (envsubst 템플릿)",
-  "_note": "privateKey는 secrets.env의 LIGHTER_API_SECRET으로 주입됨",
+  "_note": "privateKey는 .env의 LIGHTER_API_SECRET / LIGHTER_PRIVATE_KEY로 주입됨",
 
   "max_open_trades": 5,
   "stake_currency": "USDC",

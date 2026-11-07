@@ -2,7 +2,7 @@
 # DEATH MODE v2 — Multi-Exchange Docker Compose
 #
 # 이식성 규칙:
-#   - 모든 secrets: secrets.env (gitignore 대상)
+#   - 모든 secrets: .env (gitignore 대상; secrets.env → .env symlink 허용)
 #   - Python 버전: entrypoint_patch.sh 동적 감지
 #   - verify=False: LIGHTER_SKIP_SSL_VERIFY=1 (HMG 사내망만)
 #   - 기본 전략: DeathModeV2_Cardinal (Risk Gate + Tilt)
@@ -16,7 +16,8 @@
 #   8087 = okx        (CEX, USDT)
 #
 # 사용법:
-#   cp secrets.env.template secrets.env && nano secrets.env
+#   cp .env.template .env && nano .env
+#   bash scripts/manage_env.sh expand
 #   docker compose up -d              # Lighter only
 #   docker compose --profile hyperliquid up -d
 #   docker compose --profile cex up -d  # CEX (외부망 필요)
@@ -26,6 +27,8 @@ x-freqtrade-common: &freqtrade-common
   image: freqtradeorg/freqtrade:stable
   restart: unless-stopped
   env_file:
+    - path: ./.env
+      required: false
     - path: ./secrets.env
       required: false
   volumes:

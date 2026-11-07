@@ -47,8 +47,9 @@ docker compose --profile hyperliquid up -d
 
 ## 설정 파일
 
-모든 민감 설정은 `secrets.env` → `config/*.json` envsubst 구조.
-`setup.sh` 실행 시 템플릿에서 자동 생성됨.
+모든 민감 설정은 `.env` (gitignore) → `config/*.json` expand 구조.
+`secrets.env`는 `.env` 심볼릭 링크(하위호환). 관리: `bash scripts/manage_env.sh status|expand`.
+`setup.sh` 실행 시 `.env.template`에서 자동 생성됨.
 
 ## 크론잡
 - `death-mode-daily-pnl` — 24시간 간격 P&L 리포트

@@ -1,9 +1,10 @@
 # DEATH MODE v2 — .gitignore
 #
-# secrets.env는 절대 git에 커밋하지 마세요!
-# 계정 정보, private key 포함.
+# .env / secrets.env는 절대 git에 커밋하지 마세요!
+# 계정 정보, private key 포함. Canonical: .env
 
 # 비밀 설정
+.env
 secrets.env
 *.env
 !secrets.env.template

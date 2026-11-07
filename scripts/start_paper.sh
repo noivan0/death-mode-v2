@@ -6,7 +6,12 @@ cd "$PROJ"
 export PATH="${HOME}/.local/bin:${PATH}"
 export PYTHONPATH="${PROJ}${PYTHONPATH:+:$PYTHONPATH}"
 export PROJ_DIR="${PROJ_DIR:-$PROJ}"
+export PROJ="${PROJ:-$PROJ}"
 export DM_STRATEGY="${DM_STRATEGY:-DeathModeV2_Cardinal}"
+
+# Prefer .env (secrets.env is legacy / symlink)
+# shellcheck disable=SC1091
+source "$PROJ/scripts/load_env.sh"
 
 python3 scripts/ensure_lighter_ccxt_patch.py
 
