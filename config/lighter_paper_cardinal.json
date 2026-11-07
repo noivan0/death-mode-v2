@@ -39,7 +39,7 @@
     "secret": "",
     "ccxt_config": {
       "options": {
-        "accountIndex": 0,
+        "accountIndex": 1058,
         "apiKeyIndex": 0,
         "chainId": 304
       },
@@ -47,7 +47,7 @@
     },
     "ccxt_async_config": {
       "options": {
-        "accountIndex": 0,
+        "accountIndex": 1058,
         "apiKeyIndex": 0,
         "chainId": 304
       },
@@ -61,7 +61,9 @@
     "pair_blacklist": []
   },
   "pairlists": [
-    {"method": "StaticPairList"}
+    {
+      "method": "StaticPairList"
+    }
   ],
   "telegram": {
     "enabled": false,
