@@ -100,3 +100,27 @@ def test_long_stop_above_entry_blocked():
     result = gate.evaluate(_plan(stop=85000.0, target=86000.0), equity=10_000)
     assert not result.allowed
     assert "stop above" in result.reason
+
+
+def test_rr_float_epsilon_allows_near_min():
+    gate = RiskGate(RiskConfig(min_rr=2.0, state_path="/tmp/dm_test_eps.json"))
+    gate._state = {"day": None, "day_pnl": 0.0, "killed": False, "consecutive_losses": 0, "consecutive_wins": 0, "open_risk": 0.0}
+    # reward/risk == 1.99999998 should pass with epsilon
+    entry, stop = 100.0, 99.0
+    target = entry + 1.99999998 * (entry - stop)
+    result = gate.evaluate(_plan(entry=entry, stop=stop, target=target), equity=10_000)
+    assert result.allowed
+
+
+def test_stake_cap_on_tight_stop():
+    gate = RiskGate(RiskConfig(max_risk=0.005, max_stake_mult=2.0, state_path="/tmp/dm_test_cap.json"))
+    gate._state = {"day": None, "day_pnl": 0.0, "killed": False, "consecutive_losses": 0, "consecutive_wins": 0, "open_risk": 0.0}
+    # 0.05% stop → uncapped stake would be ~10× equity
+    result = gate.evaluate(
+        _plan(entry=100.0, stop=99.95, target=100.1),
+        equity=10_000,
+    )
+    assert result.allowed
+    assert result.meta["stake_capped"] is True
+    assert result.meta["stake"] <= 10_000 * 2.0 + 1e-6
+    assert result.decision == GateDecision.SHRINK

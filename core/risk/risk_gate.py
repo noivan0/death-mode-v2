@@ -76,6 +76,8 @@ class RiskConfig:
     min_confidence: float = 0.6
     shrink_factor: float = 0.5       # after a loss, next size × this
     max_open_risk: float = 0.02      # total open risk cap (2% equity)
+    max_stake_mult: float = 2.0      # stake ≤ equity × this (caps ultra-tight stops)
+    rr_epsilon: float = 1e-6         # float tolerance for R:R compare
     qty_precision: int = 6
     state_path: Optional[str] = None
 
@@ -88,6 +90,7 @@ class RiskConfig:
             min_confidence=float(os.environ.get("DM_MIN_CONFIDENCE", "0.6")),
             shrink_factor=float(os.environ.get("DM_SHRINK_FACTOR", "0.5")),
             max_open_risk=float(os.environ.get("DM_MAX_OPEN_RISK", "0.02")),
+            max_stake_mult=float(os.environ.get("DM_MAX_STAKE_MULT", "2.0")),
             state_path=os.environ.get("DM_RISK_STATE_PATH"),
         )
 
@@ -205,7 +208,7 @@ class RiskGate:
             return GateResult(GateDecision.BLOCK, None, "zero risk", rr=0.0)
 
         rr = reward / risk
-        if rr < cfg.min_rr:
+        if rr + cfg.rr_epsilon < cfg.min_rr:
             return GateResult(GateDecision.BLOCK, None, "bad R:R", rr=rr)
 
         if plan.confidence < cfg.min_confidence:
@@ -239,6 +242,17 @@ class RiskGate:
             return GateResult(GateDecision.BLOCK, None, "qty rounded to zero", rr=rr)
 
         stake = qty * plan.entry  # notional in quote
+        max_stake = equity * cfg.max_stake_mult
+        capped = False
+        if max_stake > 0 and stake > max_stake:
+            # Cap notional; effective $ risk shrinks with the same stop distance
+            qty = round(max_stake / plan.entry, cfg.qty_precision)
+            stake = qty * plan.entry
+            capped = True
+            reason = f"{reason}+stake_cap" if reason == "ok" else f"{reason}+stake_cap"
+            if decision == GateDecision.ALLOW:
+                decision = GateDecision.SHRINK
+
         return GateResult(
             decision=decision,
             qty=qty,
@@ -249,6 +263,7 @@ class RiskGate:
                 "stake": round(stake, 4),
                 "risk_amount": round(risk_amount, 4),
                 "stop_distance_pct": round(risk / plan.entry, 6) if plan.entry else 0.0,
+                "stake_capped": capped,
             },
         )
 

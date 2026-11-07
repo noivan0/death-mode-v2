@@ -194,8 +194,9 @@ freqtrade trade \
 원칙: **에이전트/LLM은 사이즈를 정하지 않는다. Python RiskGate만 정한다.**
 
 ```bash
-# 자율운영 기동 전 — Lighter API 감사 (chainId/oracle/OI)
+# 자율운영 기동 전 — Lighter API 감사 + 실데이터 시그널/게이트 검증
 python bot.py lighter-audit
+python bot.py verify-data          # candles/funding/book/OI → Cardinal RiskGate
 
 # 자율운영 기동 (기본 전략 = DeathModeV2_Cardinal, dry_run 유지 권장)
 python bot.py start -e hyperliquid lighter

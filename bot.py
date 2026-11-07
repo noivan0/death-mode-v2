@@ -8,6 +8,7 @@
   python bot.py health
   python bot.py risk
   python bot.py lighter-audit
+  python bot.py verify-data
   python bot.py logs [exchange]
   python bot.py data-download [--days 30]
   python bot.py backtest [--strategy DeathModeV2_Cardinal]
@@ -229,13 +230,21 @@ def run_lighter_audit():
         print("⚠️  lighter_api_audit.py 없음")
 
 
+def run_verify_data():
+    """Live market-data → signal → RiskGate verification"""
+    script = PROJ / "scripts" / "verify_lighter_trading_data.py"
+    if script.exists():
+        raise SystemExit(subprocess.run([sys.executable, str(script)], cwd=str(PROJ)).returncode)
+    print("⚠️  verify_lighter_trading_data.py 없음")
+
+
 def main():
     parser = argparse.ArgumentParser(description="DEATH MODE v2 Bot Controller")
     parser.add_argument(
         "action",
         choices=[
             "start", "stop", "restart", "status", "health", "risk",
-            "lighter-audit", "logs", "data-download",
+            "lighter-audit", "verify-data", "logs", "data-download",
         ],
     )
     parser.add_argument("--exchange", "-e", nargs="+", default=None,
@@ -259,6 +268,10 @@ def main():
 
     if args.action == "lighter-audit":
         run_lighter_audit()
+        return
+
+    if args.action == "verify-data":
+        run_verify_data()
         return
 
     if args.action == "logs":
