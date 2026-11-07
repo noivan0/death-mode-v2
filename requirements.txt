@@ -7,7 +7,10 @@
 # 핵심 의존성
 ccxt==4.5.54
 websockets>=12.0
-lighter-python>=0.3.0
+# Official package name on PyPI (elliottech/lighter-python).
+# ≥1.1.8: int64 market IDs, WS shutdown, binary options models, PnL auth fix.
+# ≥1.1.3: modify-order version + larger market indexes (required for new markets ≥4095).
+lighter-sdk>=1.1.8
 
 # 데이터/분석
 pandas>=2.0

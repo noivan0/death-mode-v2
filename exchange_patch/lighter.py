@@ -52,7 +52,7 @@ class Lighter(Exchange):
         "secret": "",       ← 사용 안 함
         "ccxt_config": {
           "privateKey": "${LIGHTER_PRIVATE_KEY}",
-          "options": {"accountIndex": 0, "apiKeyIndex": 0, "chainId": 300}
+          "options": {"accountIndex": 0, "apiKeyIndex": 0, "chainId": 304}
         }
       }
     → 실제 privateKey는 환경변수 LIGHTER_PRIVATE_KEY로 주입.
@@ -141,7 +141,17 @@ class Lighter(Exchange):
     def market_is_tradable(self, market: dict) -> bool:
         parent_check = super().market_is_tradable(market)
         # Lighter quote 필드 실측: 'USDC' (not 'USDC:USDC')
-        return parent_check and market.get("quote") == "USDC"
+        if not (parent_check and market.get("quote") == "USDC"):
+            return False
+        # 2026 API: market_id is int64; new perps can be ≥4095.
+        # Never assume market_id≥2048 ⇒ spot — use market_type.
+        info = market.get("info") or {}
+        mtype = str(info.get("market_type") or "perp").lower()
+        if mtype in ("spot", "binary_option", "binary", "bo"):
+            return False
+        if info.get("is_frozen"):
+            return False
+        return True
 
     # ──────────────────────────────────────────────────────────────
     # 레버리지

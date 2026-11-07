@@ -7,6 +7,7 @@
   python bot.py status
   python bot.py health
   python bot.py risk
+  python bot.py lighter-audit
   python bot.py logs [exchange]
   python bot.py data-download [--days 30]
   python bot.py backtest [--strategy DeathModeV2_Cardinal]
@@ -219,11 +220,23 @@ def run_risk():
         print("⚠️  risk_status.py 없음")
 
 
+def run_lighter_audit():
+    """Live Lighter API compatibility audit"""
+    script = PROJ / "scripts" / "lighter_api_audit.py"
+    if script.exists():
+        subprocess.run([sys.executable, str(script)], cwd=str(PROJ))
+    else:
+        print("⚠️  lighter_api_audit.py 없음")
+
+
 def main():
     parser = argparse.ArgumentParser(description="DEATH MODE v2 Bot Controller")
     parser.add_argument(
         "action",
-        choices=["start", "stop", "restart", "status", "health", "risk", "logs", "data-download"],
+        choices=[
+            "start", "stop", "restart", "status", "health", "risk",
+            "lighter-audit", "logs", "data-download",
+        ],
     )
     parser.add_argument("--exchange", "-e", nargs="+", default=None,
                         help="거래소 이름 또는 'all' (기본: hyperliquid,lighter)")
@@ -242,6 +255,10 @@ def main():
 
     if args.action == "risk":
         run_risk()
+        return
+
+    if args.action == "lighter-audit":
+        run_lighter_audit()
         return
 
     if args.action == "logs":

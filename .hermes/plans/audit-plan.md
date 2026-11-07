@@ -32,6 +32,16 @@
 - [ ] Webhook: kill switch / tilt block 알림
 - [ ] 14일 페이퍼 A/B (rules-only vs Cardinal cage)
 
+## Phase 3.6: Lighter API 2026 Q4 정렬
+- [x] mainnet chainId 기본값 300 → **304** (치명 버그 수정)
+- [x] market_type 기반 필터 (ID≥2048 spot 추론 제거, int64≥4095 대응)
+- [x] WS shutdown 이벤트 재연결
+- [x] priceOracleInfo / OI utilization / frozen 감사 스크립트
+- [x] lighter-sdk≥1.1.8 핀 + stoploss_on_exchange 기본 ON
+- [ ] position-tied SL/TP grouped orders (SDK create_grouped_orders) Freqtrade 연동
+- [ ] historicalTrade / S3 public dataset 백필 파이프라인
+- [ ] 2026-11-08 L1CoreMessaging 컷오버 후 L1 priority TX 검증
+
 ## Phase 4: 배포
 - [ ] Docker Compose 실제 실행 테스트
 - [ ] pm.sh 실제 실행 테스트

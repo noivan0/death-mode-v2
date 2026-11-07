@@ -112,6 +112,27 @@ def check_cardinal_risk() -> dict:
         return {"ok": False, "error": str(e)}
 
 
+def check_lighter_api() -> dict:
+    """Live Lighter REST / oracle / chainId audit (best-effort)."""
+    sys.path.insert(0, str(PROJ))
+    try:
+        from core.exchange.lighter_compat import LighterApiClient
+        h = LighterApiClient().audit()
+        return {
+            "ok": h.ok,
+            "network": h.network,
+            "chain_id": h.chain_id,
+            "rest_status": h.rest_status,
+            "perp_count": h.perp_count,
+            "frozen_count": h.frozen_count,
+            "high_oi": h.high_oi_markets[:5],
+            "stale_oracle": h.stale_oracle_symbols[:5],
+            "warnings": h.warnings,
+        }
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+
+
 def main():
     check_once = "--check-once" in sys.argv
 
@@ -165,9 +186,28 @@ def main():
         print(f"  📓 journal allow/block/shrink="
               f"{j.get('allows')}/{j.get('blocks')}/{j.get('shrinks')}")
 
-    # 5. 자동 복구 (kill switch ON이면 재시작하지 않음 — 의도된 정지)
+    # 5. Lighter API surface
+    print("\n=== 5. Lighter API ===")
+    lighter = check_lighter_api()
+    if lighter.get("error"):
+        print(f"  ⚠️  lighter audit unavailable: {lighter['error']}")
+    else:
+        icon = "✅" if lighter.get("ok") else "❌"
+        print(
+            f"  {icon} network={lighter.get('network')} chainId={lighter.get('chain_id')} "
+            f"status={lighter.get('rest_status')} perps={lighter.get('perp_count')} "
+            f"frozen={lighter.get('frozen_count')}"
+        )
+        if lighter.get("high_oi"):
+            print(f"  ⚠️  high OI: {', '.join(lighter['high_oi'])}")
+        if lighter.get("stale_oracle"):
+            print(f"  ⚠️  stale oracle: {', '.join(lighter['stale_oracle'])}")
+        for w in (lighter.get("warnings") or [])[:5]:
+            print(f"  ⚠️  {w}")
+
+    # 6. 자동 복구 (kill switch ON이면 재시작하지 않음 — 의도된 정지)
     if dead:
-        print(f"\n=== 5. 자동 복구 ===")
+        print(f"\n=== 6. 자동 복구 ===")
         if risk.get("killed"):
             print("  🛑 kill switch ON — auto-restart suppressed")
         else:

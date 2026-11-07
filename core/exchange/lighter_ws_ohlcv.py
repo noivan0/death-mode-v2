@@ -207,6 +207,20 @@ class LighterOHLCVWs:
                 await self._ws.send(json.dumps({"type": "pong"}))
             return
 
+        # API update (Oct 2026): rolling deploys emit graceful shutdown
+        # {"type":"shutdown","close_in_ms":7350} then close code 1012
+        if mtype == "shutdown":
+            close_in_ms = float(msg.get("close_in_ms") or 5000)
+            wait_s = max(0.0, close_in_ms / 1000.0)
+            log.warning(
+                f"[LighterOHLCVWs] server shutdown in {wait_s:.2f}s — "
+                "closing for reconnect (parallel connections recommended)"
+            )
+            await asyncio.sleep(min(wait_s, 30.0))
+            if self._ws:
+                await self._ws.close()
+            return
+
         if mtype in ("subscribed/candle", "update/candle"):
             await self._process_candle_msg(msg)
         elif mtype == "error":

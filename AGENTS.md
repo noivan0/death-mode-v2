@@ -56,5 +56,10 @@ docker compose --profile hyperliquid up -d
 ## 주의사항
 - NostalgiaForInfinityX7.py는 3.4MB 대용량 파일 (외부 repo에서 클론)
 - Lighter 오더북은 USDC 기반 (USDT 아님)
+- **Lighter mainnet L2 chainId = 304** (testnet = 300). 템플릿 기본값 304 유지
+- `lighter-sdk>=1.1.8` 필수 (int64 market_id, WS shutdown, modify-order)
+- market_id로 spot/perp 추론 금지 → `market_type` 필드 사용 (신규 마켓 ≥4095)
 - HMG 사내망: `LIGHTER_SKIP_SSL_VERIFY=1` 필수
+- 2026-11-08 13:00 UTC: mainnet L1 Priority TX → L1CoreMessaging 컷오버 예정
 - 백테스트 데이터: 2023-01-01 ~ 2025-05-01 (2.3년)
+- 라이브 전 체크: `python bot.py lighter-audit` + `python bot.py risk` + dry_run 페이퍼

@@ -67,13 +67,15 @@ class Lighter(Exchange):
             "options": {
               "accountIndex": 1058,
               "apiKeyIndex": 2,
-              "chainId": 300
+              "chainId": 304
             }
           }
         },
         "trading_mode": "futures",
         "margin_mode": "cross"
       }
+
+    Mainnet L2 chainId = 304 (testnet = 300). Never default to 300 on mainnet.
     """
 
     # ── Freqtrade FtHas 설정 ─────────────────────────────────────────────────
@@ -96,7 +98,8 @@ class Lighter(Exchange):
 
     _ft_has_futures: FtHas = {
         "stoploss_on_exchange":         True,        # perp: 지원
-        "stoploss_order_types":         {"limit": "limit"},   # market stop은 검증 후 추가
+        # SDK 1.1.x: STOP_LOSS (market) + STOP_LOSS_LIMIT — market needs worst-price slippage buffer
+        "stoploss_order_types":         {"limit": "limit", "market": "market"},
         "stoploss_blocks_assets":       False,
         "stop_price_prop":              "stopPrice",          # ccxt 응답 필드
         "stop_price_param":             "stopLossPrice",      # ccxt 요청 파라미터 (#6 수정)
@@ -104,6 +107,21 @@ class Lighter(Exchange):
         "uses_leverage_tiers":          False,
         "mark_ohlcv_price":             "futures",
     }
+
+    def market_is_tradable(self, market: dict) -> bool:
+        """Use market_type — never infer spot from market_id ≥ 2048 (broken since int64 IDs)."""
+        parent_check = super().market_is_tradable(market)
+        if not parent_check:
+            return False
+        if market.get("quote") not in ("USDC", "USDC:USDC", "USD"):
+            return False
+        info = market.get("info") or {}
+        mtype = str(info.get("market_type") or market.get("type") or "perp").lower()
+        if mtype in ("spot", "binary_option", "binary", "bo"):
+            return False
+        if info.get("is_frozen"):
+            return False
+        return True
 
     _supported_trading_mode_margin_pairs: list[tuple[TradingMode, MarginMode]] = [
         (TradingMode.FUTURES, MarginMode.CROSS),
@@ -136,14 +154,26 @@ class Lighter(Exchange):
     def additional_exchange_init(self) -> None:
         """거래소 초기화 후 chainId, accountIndex 검증."""
         try:
+            from core.exchange.lighter_compat import (
+                CHAIN_ID_MAINNET,
+                assert_mainnet_chain_id,
+                resolve_network_name,
+            )
+
+            chain_id = int(self._api.options.get("chainId", CHAIN_ID_MAINNET))
+            account_index = self._api.options.get("accountIndex")
+            assert_mainnet_chain_id(chain_id)
+            network = resolve_network_name(chain_id)
+            logger.info(
+                f"[Lighter] 초기화 완료 — {network} "
+                f"(chainId={chain_id}, accountIndex={account_index})"
+            )
             if self.trading_mode == TradingMode.FUTURES and not self._config.get("dry_run"):
-                chain_id = self._api.options.get("chainId", 300)
-                account_index = self._api.options.get("accountIndex")
-                network = "testnet" if chain_id != 300 else "mainnet"
-                logger.info(
-                    f"[Lighter] 초기화 완료 — {network} "
-                    f"(chainId={chain_id}, accountIndex={account_index})"
-                )
+                if chain_id != CHAIN_ID_MAINNET:
+                    logger.warning(
+                        "[Lighter] live futures with non-mainnet chainId=%s — confirm intentionally",
+                        chain_id,
+                    )
         except ccxt.DDoSProtection as e:
             raise DDosProtection(e) from e
         except (ccxt.OperationFailed, ccxt.ExchangeError) as e:

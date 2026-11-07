@@ -194,11 +194,17 @@ freqtrade trade \
 원칙: **에이전트/LLM은 사이즈를 정하지 않는다. Python RiskGate만 정한다.**
 
 ```bash
-# 자율운영 기동 (기본 전략 = DeathModeV2_Cardinal)
+# 자율운영 기동 전 — Lighter API 감사 (chainId/oracle/OI)
+python bot.py lighter-audit
+
+# 자율운영 기동 (기본 전략 = DeathModeV2_Cardinal, dry_run 유지 권장)
 python bot.py start -e hyperliquid lighter
 python bot.py risk
 python bot.py health
 ```
+
+> **실전 적용 전 필수:** `secrets.env`의 `LIGHTER_CHAIN_ID=304`(mainnet), `lighter-sdk>=1.1.8`,
+> config `dry_run: true`로 페이퍼 검증 후 `false` 전환. Cardinal 케이지만으로 실전 완료가 아님.
 
 ### CI 상태
 

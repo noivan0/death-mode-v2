@@ -30,8 +30,9 @@
     "entry": "limit",
     "exit": "limit",
     "stoploss": "limit",
-    "stoploss_on_exchange": false,
-    "stoploss_on_exchange_interval": 60
+    "stoploss_on_exchange": true,
+    "stoploss_on_exchange_interval": 60,
+    "stoploss_on_exchange_limit_ratio": 0.99
   },
   "order_time_in_force": {
     "entry": "GTC",
@@ -46,7 +47,7 @@
       "options": {
         "accountIndex": ${LIGHTER_ACCOUNT_INDEX:-0},
         "apiKeyIndex": ${LIGHTER_API_KEY_INDEX:-0},
-        "chainId": ${LIGHTER_CHAIN_ID:-300}
+        "chainId": ${LIGHTER_CHAIN_ID:-304}
       },
       "privateKey": "${LIGHTER_API_SECRET}"
     },
@@ -54,7 +55,7 @@
       "options": {
         "accountIndex": ${LIGHTER_ACCOUNT_INDEX:-0},
         "apiKeyIndex": ${LIGHTER_API_KEY_INDEX:-0},
-        "chainId": ${LIGHTER_CHAIN_ID:-300}
+        "chainId": ${LIGHTER_CHAIN_ID:-304}
       },
       "privateKey": "${LIGHTER_API_SECRET}"
     },
